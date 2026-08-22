@@ -42,6 +42,20 @@ const PAGE_MARGIN = 36;
  */
 export const TABLE_WIDTH_BUDGET = A4.width - PAGE_MARGIN * 2;
 /**
+ * Printed Helvetica under this is not readable. `density` scales the
+ * reference sheet's type down as a chart grows, but fitting the page must
+ * never win by making the type unreadable — every size that scales with
+ * density goes through `densityFont`, which floors here instead of
+ * continuing to shrink. What tightening a dense chart still needs comes out
+ * of the grid instead: `summaryColumns` widths and `labelWidth` scale with
+ * `density` too, so there's still a lever left once the type bottoms out.
+ */
+export const MIN_FONT_SIZE = 6;
+/** A text size that shrinks with `density`, but never past `MIN_FONT_SIZE`. */
+export function densityFont(base: number, density: number): number {
+  return Math.max(base * density, MIN_FONT_SIZE);
+}
+/**
  * The phone sheet's fixed page width, in points — 244pt is roughly the
  * width of a phone screen at a comfortable reading zoom.
  *
@@ -667,7 +681,12 @@ function SummaryTable({
         }}
       >
         <Text
-          style={{ fontFamily: font.bold, fontSize: 6.5 * density, width: 14, color: colour.ink }}
+          style={{
+            fontFamily: font.bold,
+            fontSize: densityFont(6.5, density),
+            width: 14 * density,
+            color: colour.ink,
+          }}
         >
           #
         </Text>
@@ -676,8 +695,8 @@ function SummaryTable({
             key={column.label}
             style={{
               fontFamily: font.bold,
-              fontSize: 6.5 * density,
-              width: column.width,
+              fontSize: densityFont(6.5, density),
+              width: column.width * density,
               color: colour.ink,
             }}
           >
@@ -699,8 +718,8 @@ function SummaryTable({
           <Text
             style={{
               fontFamily: font.sans,
-              fontSize: 6.8 * density,
-              width: 14,
+              fontSize: densityFont(6.8, density),
+              width: 14 * density,
               color: colour.muted,
             }}
           >
@@ -711,8 +730,8 @@ function SummaryTable({
               key={column.label}
               style={{
                 fontFamily: position === 0 ? font.bold : font.sans,
-                fontSize: 6.8 * density,
-                width: column.width,
+                fontSize: densityFont(6.8, density),
+                width: column.width * density,
                 color: position === 0 ? colour.ink : colour.body,
                 paddingRight: 4,
               }}
@@ -731,7 +750,10 @@ function SummaryTable({
  * Columns are numbered to match the rows so the header stays narrow.
  */
 function MixMatrix({ items, density }: { items: ResolvedInstruction[]; density: number }) {
-  const labelWidth = 118;
+  // Narrows with density like the summary table's columns, so a dense chart
+  // spends its tightening on the grid too, not on type alone — it also frees
+  // more of the row width for `cell`, the actual matrix squares.
+  const labelWidth = 118 * density;
   const cell = (A4.width - 72 - labelWidth) / items.length;
   const used = new Set<Blocker>();
   for (const a of items)
@@ -750,7 +772,7 @@ function MixMatrix({ items, density }: { items: ResolvedInstruction[]; density: 
             key={item.clothingType}
             style={{
               fontFamily: font.bold,
-              fontSize: 6 * density,
+              fontSize: densityFont(6, density),
               width: cell,
               textAlign: "center",
               color: colour.muted,
@@ -765,7 +787,7 @@ function MixMatrix({ items, density }: { items: ResolvedInstruction[]; density: 
           <Text
             style={{
               fontFamily: font.sans,
-              fontSize: 6.6 * density,
+              fontSize: densityFont(6.6, density),
               width: labelWidth,
               color: colour.ink,
               paddingVertical: 2.2 * density,
@@ -794,7 +816,7 @@ function MixMatrix({ items, density }: { items: ResolvedInstruction[]; density: 
                 <Text
                   style={{
                     fontFamily: blocker ? font.bold : font.sans,
-                    fontSize: 6 * density,
+                    fontSize: densityFont(6, density),
                     // Inverted from how this used to read: a blocker is the
                     // thing that ruins a garment, so it gets the loud ink.
                     // "OK" already has the soft green fill saying "safe" —
