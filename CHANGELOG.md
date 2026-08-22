@@ -1,3 +1,19 @@
+## [2.0.0](https://github.com/alrayyes/washy-washy-pdf/compare/v1.1.1...v2.0.0) (2026-08-22)
+
+### ⚠ BREAKING CHANGES
+
+* renderPrint now returns { pdf, dropped } instead of a
+bare Uint8Array, matching the shape renderPhone/renderCard already use
+(both gain a dropped field too). This is the only way to satisfy the
+ticket's requirement that dropped characters come back through the
+render result itself, not a separate opt-in step a caller could forget
+to call. Every renderPrint call site in this repo's own tests updated
+to destructure .pdf.
+
+### Bug Fixes
+
+* transliterate or report non-WinAnsi characters instead of dropping them silently ([#31](https://github.com/alrayyes/washy-washy-pdf/issues/31)) ([a07756f](https://github.com/alrayyes/washy-washy-pdf/commit/a07756f312ee254bf9b8f46293e65e3dbad0534b)), closes [#16](https://github.com/alrayyes/washy-washy-pdf/issues/16)
+
 ## [1.1.1](https://github.com/alrayyes/washy-washy-pdf/compare/v1.1.0...v1.1.1) (2026-08-22)
 
 ### Bug Fixes
