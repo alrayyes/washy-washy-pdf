@@ -228,7 +228,7 @@ export function ChipRow({
           fontFamily: font.sans,
           fontSize: size - 1.2,
           color: colour.muted,
-          width: 52,
+          width: 58,
           // Keeps the label on the first line when the chips wrap onto a second.
           paddingTop: 1.8,
         }}

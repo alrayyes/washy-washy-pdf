@@ -29,8 +29,11 @@ export async function pageText(bytes: Uint8Array): Promise<string[]> {
     if (!(stream instanceof PDFRawStream)) return "";
     const decoded = Buffer.from(decodePDFRawStream(stream).decode()).toString("latin1");
 
+    // Kerning adjustments between runs are floats ("-103.448276"), not just
+    // integers — a plain \d* here matches the digits before the point and
+    // silently truncates the rest of the array, dropping every run after it.
     let text = "";
-    for (const tj of decoded.matchAll(/\[((?:<[0-9a-fA-F]+>\s*-?\d*\s*)+)\]\s*TJ/g)) {
+    for (const tj of decoded.matchAll(/\[((?:<[0-9a-fA-F]+>\s*-?\d*(?:\.\d+)?\s*)+)\]\s*TJ/g)) {
       const run = tj[1] ?? "";
       for (const hex of run.matchAll(/<([0-9a-fA-F]+)>/g)) {
         text += Buffer.from(hex[1] ?? "", "hex").toString("latin1");

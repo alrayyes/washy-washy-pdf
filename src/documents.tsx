@@ -234,7 +234,6 @@ function Card({
         padding: compact ? 8 : 10,
         marginBottom: compact ? 8 : 12,
       }}
-      wrap={false}
     >
       <View
         style={{
@@ -332,7 +331,6 @@ function IronCard({
         padding: compact ? 8 : 10,
         marginBottom: compact ? 8 : 12,
       }}
-      wrap={false}
     >
       <View
         style={{
@@ -405,7 +403,7 @@ function IronCard({
                   fontSize: 7.4,
                   lineHeight: 1.35,
                   color: colour.ink,
-                  width: compact ? 74 : 112,
+                  width: compact ? 84 : 122,
                   paddingRight: 4,
                 }}
               >
@@ -486,7 +484,10 @@ function Loads({ items }: { items: ResolvedInstruction[] }) {
                   fontFamily: font.bold,
                   fontSize: 6.6,
                   color: colour.accent,
-                  width: 58,
+                  // Wide enough for a longer real programme name ("Allergy
+                  // Plus Extra") to wrap onto two lines rather than crowd
+                  // the pile names beside it.
+                  width: 78,
                 }}
               >
                 {first.program} {formatTemperature(first.temperature)}
@@ -508,7 +509,7 @@ function Loads({ items }: { items: ResolvedInstruction[] }) {
                   fontFamily: font.sans,
                   fontSize: 6.6,
                   color: colour.muted,
-                  width: 34,
+                  width: 42,
                   textAlign: "right",
                 }}
               >
@@ -813,12 +814,21 @@ function SummaryTable({
  * The answer to "can these two go in together" for every pair, as a grid.
  * Columns are numbered to match the rows so the header stays narrow.
  */
+/** A bold "OK" — the widest thing a cell ever holds — still reads at this width. */
+export const MIN_MATRIX_CELL = 14;
+
 function MixMatrix({ items, density }: { items: ResolvedInstruction[]; density: number }) {
   // Narrows with density like the summary table's columns, so a dense chart
   // spends its tightening on the grid too, not on type alone — it also frees
   // more of the row width for `cell`, the actual matrix squares.
   const labelWidth = 118 * density;
-  const cell = (A4.width - 72 - labelWidth) / items.length;
+  const available = A4.width - 72 - labelWidth;
+  // However many columns fit at MIN_MATRIX_CELL — past this the matrix
+  // splits into blocks stacked one under the other rather than letting
+  // cells keep narrowing past legibility. Full-width columns still divide
+  // available space evenly when there are few enough of them to fit.
+  const columnsPerBlock = Math.max(1, Math.floor(available / MIN_MATRIX_CELL));
+  const cell = available / Math.min(items.length, columnsPerBlock);
   const used = new Set<Blocker>();
   for (const a of items)
     for (const b of items) {
@@ -826,73 +836,88 @@ function MixMatrix({ items, density }: { items: ResolvedInstruction[]; density: 
       if (blocker) used.add(blocker);
     }
 
+  const blocks: { column: ResolvedInstruction; columnIndex: number }[][] = [];
+  for (let start = 0; start < items.length; start += columnsPerBlock) {
+    blocks.push(
+      items
+        .slice(start, start + columnsPerBlock)
+        .map((column, offset) => ({ column, columnIndex: start + offset })),
+    );
+  }
+
   return (
     <View>
       <SectionHeading>Can these share a load?</SectionHeading>
-      <View style={{ flexDirection: "row" }}>
-        <View style={{ width: labelWidth }} />
-        {items.map((item, index) => (
-          <Text
-            key={item.clothingType}
-            style={{
-              fontFamily: font.bold,
-              fontSize: densityFont(6, density),
-              width: cell,
-              textAlign: "center",
-              color: colour.muted,
-            }}
-          >
-            {index + 1}
-          </Text>
-        ))}
-      </View>
-      {items.map((row, rowIndex) => (
-        <View key={row.clothingType} style={{ flexDirection: "row", alignItems: "stretch" }}>
-          <Text
-            style={{
-              fontFamily: font.sans,
-              fontSize: densityFont(6.6, density),
-              width: labelWidth,
-              color: colour.ink,
-              paddingVertical: 2.2 * density,
-              paddingRight: 4,
-            }}
-          >
-            {rowIndex + 1}. {row.clothingType}
-          </Text>
-          {items.map((column, columnIndex) => {
-            const self = rowIndex === columnIndex;
-            const blocker = self ? null : mixBlocker(row, column);
-            const background = self ? colour.line : blocker ? "#ffffff" : colour.yesSoft;
-            return (
-              <View
+      {blocks.map((block, blockIndex) => (
+        // biome-ignore lint/suspicious/noArrayIndexKey: blocks are a fixed split of a stable item list, not reordered or filtered
+        <View key={blockIndex} style={{ marginTop: blockIndex === 0 ? 0 : 6 }}>
+          <View style={{ flexDirection: "row" }}>
+            <View style={{ width: labelWidth }} />
+            {block.map(({ column, columnIndex }) => (
+              <Text
                 key={column.clothingType}
                 style={{
+                  fontFamily: font.bold,
+                  fontSize: densityFont(6, density),
                   width: cell,
-                  backgroundColor: background,
-                  borderWidth: 0.4,
-                  borderColor: colour.hairline,
-                  alignItems: "center",
-                  justifyContent: "center",
-                  paddingVertical: 2.2 * density,
+                  textAlign: "center",
+                  color: colour.muted,
                 }}
               >
-                <Text
-                  style={{
-                    fontFamily: blocker ? font.bold : font.sans,
-                    fontSize: densityFont(6, density),
-                    // Inverted from how this used to read: a blocker is the
-                    // thing that ruins a garment, so it gets the loud ink.
-                    // "OK" already has the soft green fill saying "safe" —
-                    // it doesn't need bold, full-strength text as well.
-                    color: blocker ? colour.no : colour.muted,
-                  }}
-                >
-                  {self ? "" : blocker ? blockerCode[blocker] : "OK"}
-                </Text>
-              </View>
-            );
-          })}
+                {columnIndex + 1}
+              </Text>
+            ))}
+          </View>
+          {items.map((row, rowIndex) => (
+            <View key={row.clothingType} style={{ flexDirection: "row", alignItems: "stretch" }}>
+              <Text
+                style={{
+                  fontFamily: font.sans,
+                  fontSize: densityFont(6.6, density),
+                  width: labelWidth,
+                  color: colour.ink,
+                  paddingVertical: 2.2 * density,
+                  paddingRight: 4,
+                }}
+              >
+                {rowIndex + 1}. {row.clothingType}
+              </Text>
+              {block.map(({ column, columnIndex }) => {
+                const self = rowIndex === columnIndex;
+                const blocker = self ? null : mixBlocker(row, column);
+                const background = self ? colour.line : blocker ? "#ffffff" : colour.yesSoft;
+                return (
+                  <View
+                    key={column.clothingType}
+                    style={{
+                      width: cell,
+                      backgroundColor: background,
+                      borderWidth: 0.4,
+                      borderColor: colour.hairline,
+                      alignItems: "center",
+                      justifyContent: "center",
+                      paddingVertical: 2.2 * density,
+                    }}
+                  >
+                    <Text
+                      style={{
+                        fontFamily: blocker ? font.bold : font.sans,
+                        fontSize: densityFont(6, density),
+                        // Inverted from how this used to read: a blocker is
+                        // the thing that ruins a garment, so it gets the
+                        // loud ink. "OK" already has the soft green fill
+                        // saying "safe" — it doesn't need bold, full-strength
+                        // text as well.
+                        color: blocker ? colour.no : colour.muted,
+                      }}
+                    >
+                      {self ? "" : blocker ? blockerCode[blocker] : "OK"}
+                    </Text>
+                  </View>
+                );
+              })}
+            </View>
+          ))}
         </View>
       ))}
       <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10, marginTop: 5 }}>
@@ -1018,9 +1043,11 @@ export function PrintDocument({
       <Document title={`${sheet[variant].title} — print`} {...documentMeta(machine, variant)}>
         <ReferenceSheet items={items} density={density} variant={variant} />
         {/*
-        The cards flow onto as many A4 sheets as they need. Each card is
-        `wrap={false}`, so one is never split across a page break; how many
-        land on a sheet depends on how much prose the CSV carries.
+        The cards flow onto as many A4 sheets as they need. How many land on
+        a sheet depends on how much prose the CSV carries — an ordinary card
+        moves to a fresh page as a whole rather than splitting, simply
+        because it comfortably fits one; only a card long enough to exceed a
+        full page's height ever actually splits.
       */}
         <Page
           size={[A4.width, A4.height]}
