@@ -534,6 +534,7 @@ function Legend({ last = false, variant = "full" }: { last?: boolean; variant?: 
 
   return (
     <View
+      wrap={false}
       style={{
         flexDirection: "row",
         gap: 10,
