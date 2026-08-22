@@ -1,21 +1,15 @@
 config:
-  # Prose wraps where it reads best; a hard column limit fights that.
-  MD013: false
+  # markdownlint's own maintained list of rules Prettier already decides —
+  # heading/blank/blockquote/fence style, trailing spaces, list markers and
+  # indent — rather than hand-picking the subset that happened to conflict.
+  extends: "markdownlint/style/prettier"
+  # Prose wraps where it reads best; a hard column limit fights that. Off
+  # under its alias, never MD013 — extends merges on the literal key, so an
+  # MD013 block here would sit beside the inherited (also off) one and do
+  # nothing.
+  line-length: false
   # The README opens with a badge row, not a heading.
   MD041: false
-
-  # Below here: layout Prettier already decides. Prettier runs first and
-  # markdownlint judges what it produced, so leaving these on would only give us
-  # a hook that fails twice and fixes nothing.
-  # List markers.
-  MD004: false
-  # List indentation.
-  MD007: false
-  # Consecutive blank lines.
-  MD012: false
-  # Emphasis characters.
-  MD049: false
-  MD050: false
 
 globs:
   - "**/*.md"
