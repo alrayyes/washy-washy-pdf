@@ -21,6 +21,7 @@
     "build": "tsdown",
     "check": "bun run lint && bun run lint:md && bun run lint:yaml && bun run lint:package-json && bun run lint:prose && bun run typecheck && bun test",
     "docs": "typedoc",
+    "examples": "bun run scripts/examples.ts",
     "format": "prettier --write .",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
@@ -32,6 +33,7 @@
     "prepack": "bun run build",
     "prepare": "lefthook install",
     "prose:sync": "bun run scripts/install-vale.ts && .tools/vale sync",
+    "screenshots": "bun run scripts/screenshots.ts",
     "test": "bun test",
     "typecheck": "tsc --noEmit"
   },
