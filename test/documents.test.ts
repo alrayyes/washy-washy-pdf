@@ -15,7 +15,7 @@ describe("Card temperature", () => {
   // tacked onto a word that was never a number.
   test("shows the machine's own word for a non-numeric temperature, no unit", async () => {
     const items = resolve([pile(1, { temperature: "cold" })]);
-    const text = (await pageText(await renderPrint(items, MACHINE))).join("\n");
+    const text = (await pageText((await renderPrint(items, MACHINE)).pdf)).join("\n");
 
     expect(text).toContain("Cottons cold ·");
     expect(text).not.toContain("cold °C");
@@ -24,7 +24,7 @@ describe("Card temperature", () => {
 
   test("still shows a numeric temperature with its unit", async () => {
     const items = resolve([pile(1, { temperature: "60" })]);
-    const text = (await pageText(await renderPrint(items, MACHINE))).join("\n");
+    const text = (await pageText((await renderPrint(items, MACHINE)).pdf)).join("\n");
 
     expect(text).toContain("Cottons 60 °C ·");
   });

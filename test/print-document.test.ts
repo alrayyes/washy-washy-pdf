@@ -11,7 +11,7 @@ import { pageText } from "./pdf-text";
 describe("PrintDocument metadata", () => {
   test("Title, Author, Subject and Creator are all populated", async () => {
     const items = resolve([pile(1)]);
-    const bytes = await renderPrint(items, MACHINE);
+    const { pdf: bytes } = await renderPrint(items, MACHINE);
     const doc = await PDFDocument.load(bytes);
 
     expect(doc.getTitle()).toBeTruthy();
@@ -24,7 +24,7 @@ describe("PrintDocument metadata", () => {
 
   test("declares a document language", async () => {
     const items = resolve([pile(1)]);
-    const bytes = await renderPrint(items, MACHINE);
+    const { pdf: bytes } = await renderPrint(items, MACHINE);
     // pdf-lib has no getLanguage() — the catalog's /Lang entry is read
     // straight off the raw bytes instead.
     const raw = Buffer.from(bytes).toString("latin1");
@@ -37,7 +37,7 @@ describe("PrintDocument running header and page mark", () => {
   test("a later page carries the sheet's title, cut and machine name", async () => {
     // 24 piles reliably spans more than one card page.
     const items = resolve(Array.from({ length: 24 }, (_, index) => pile(index + 1)));
-    const pages = await pageText(await renderPrint(items, MACHINE));
+    const pages = await pageText((await renderPrint(items, MACHINE)).pdf);
 
     expect(pages.length).toBeGreaterThan(1);
     const lastPage = pages.at(-1) ?? "";
@@ -47,7 +47,7 @@ describe("PrintDocument running header and page mark", () => {
 
   test("every page after the first carries a page N of M mark", async () => {
     const items = resolve(Array.from({ length: 24 }, (_, index) => pile(index + 1)));
-    const pages = await pageText(await renderPrint(items, MACHINE));
+    const pages = await pageText((await renderPrint(items, MACHINE)).pdf);
 
     expect(pages.length).toBeGreaterThan(1);
     for (const page of pages.slice(1)) {

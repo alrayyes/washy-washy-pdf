@@ -41,14 +41,20 @@ import { resolve } from "@washy-washy/core";
 
 const items = resolve(instructions); // Instruction[] -> ResolvedInstruction[]
 
-const phone = await renderPhone(items, machine); // { pdf, height, attempts }
-const print = await renderPrint(items, machine); // Uint8Array
+const phone = await renderPhone(items, machine); // { pdf, height, attempts, dropped }
+const print = await renderPrint(items, machine); // { pdf, dropped }
 ```
 
 Both functions render repeatedly and bisect the page height (`renderPhone`)
 or the table density (`renderPrint`) until the sheet fits on exactly one
 page — see [CONTRIBUTING.md](CONTRIBUTING.md#gotchas) for why, and how far
 each one can stretch before it gives up.
+
+`dropped` lists the distinct characters the chart carried that this
+package's Helvetica font can't render — usually empty. What has a WinAnsi
+equivalent (curly quotes, `≈`, `✓`, an ellipsis) is transliterated
+automatically; anything else is stripped and named here instead of just
+vanishing from the PDF.
 
 Every drawing function takes a `variant` — `"full"`, `"wash"`, or `"iron"` —
 for the split sheets: the same chart with the iron's half or the machine's

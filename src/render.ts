@@ -10,6 +10,7 @@ import {
 import { PDFDocument } from "pdf-lib";
 import type { ReactElement } from "react";
 import { PhoneDocument, PrintDocument, ReferenceDocument } from "./documents";
+import { sanitizeInstructions } from "./sanitize";
 
 async function pageCount(bytes: Uint8Array): Promise<number> {
   return (await PDFDocument.load(bytes)).getPageCount();
@@ -56,6 +57,13 @@ export interface PhoneRender {
   pdf: Uint8Array;
   height: number;
   attempts: number;
+  /**
+   * Distinct characters the chart carried that this package's Helvetica
+   * font can't render, transliterated where a faithful equivalent exists
+   * and stripped otherwise — see `sanitizeText`. Empty when the chart was
+   * already fully WinAnsi-safe, which is the common case.
+   */
+  dropped: string[];
 }
 
 /**
@@ -81,8 +89,9 @@ export async function renderPhone(
   variant: Variant = "full",
   tolerance = 8,
 ): Promise<PhoneRender> {
+  const { items: clean, dropped } = sanitizeInstructions(items);
   const render = (height: number) =>
-    renderToBytes(PhoneDocument({ items, height, machine, variant }));
+    renderToBytes(PhoneDocument({ items: clean, height, machine, variant }));
   let attempts = 0;
 
   const fits = async (height: number) => {
@@ -92,7 +101,7 @@ export async function renderPhone(
   };
 
   let tooShort = 0;
-  let height = Math.ceil(guessHeight(items, machine, variant));
+  let height = Math.ceil(guessHeight(clean, machine, variant));
   let best: { pdf: Uint8Array; height: number } | null = null;
 
   for (let step = 0; step < 12 && best === null; step += 1) {
@@ -118,7 +127,7 @@ export async function renderPhone(
     }
   }
 
-  return { pdf: best.pdf, height: best.height, attempts };
+  return { pdf: best.pdf, height: best.height, attempts, dropped };
 }
 
 /**
@@ -178,20 +187,22 @@ async function fittingDensity(
  * import { resolve } from "@washy-washy/core";
  *
  * const items = resolve(instructions);
- * const pdfBytes = await renderPrint(items, machine);
+ * const { pdf, dropped } = await renderPrint(items, machine);
  * ```
  */
 export async function renderPrint(
   items: ResolvedInstruction[],
   machine: Machine,
   variant: Variant = "full",
-): Promise<Uint8Array> {
-  return renderToBytes(
+): Promise<{ pdf: Uint8Array; dropped: string[] }> {
+  const { items: clean, dropped } = sanitizeInstructions(items);
+  const pdf = await renderToBytes(
     PrintDocument({
-      items,
+      items: clean,
       machine,
       variant,
-      density: await fittingDensity(items, machine, variant),
+      density: await fittingDensity(clean, machine, variant),
     }),
   );
+  return { pdf, dropped };
 }

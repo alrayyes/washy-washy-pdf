@@ -105,7 +105,13 @@ picks, so they are worth a gate rather than only a reminder.
 ## Gotchas
 
 - Only Helvetica is embedded, so the PDFs can only render WinAnsi characters.
-  `•`, `°`, `—`, `–` are fine; `≈`, `✓` and curly quotes vanish silently.
+  `•`, `°`, `—`, `–` are fine; anything else — curly quotes, `≈`, `✓`, an
+  emoji — goes through `sanitizeText`/`sanitizeInstructions` first, which
+  every `render*` function calls automatically. What has a faithful
+  equivalent gets transliterated (curly quotes to straight, `≈` to `~`, `✓`
+  to `v`); what doesn't gets stripped and reported in the render result's
+  `dropped` array, rather than silently vanishing from the PDF with nothing
+  said about it.
 - The phone page's height is _measured_, not chosen: `renderPhone` renders the
   document repeatedly and bisects until it fits on one page with under 8 pt to
   spare. That is why the return value reports a number of layout passes.
