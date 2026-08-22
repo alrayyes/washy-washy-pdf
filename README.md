@@ -1,12 +1,12 @@
 <!--
 Maintainer note (not rendered): every badge here measures something real —
-do not add one that reads "unknown". No npm badge yet: add one once this
-package has actually published (see washy-washy-pdf#2).
+do not add one that reads "unknown".
 -->
 
 [![check](https://github.com/alrayyes/washy-washy-pdf/actions/workflows/check.yml/badge.svg?branch=main)](https://github.com/alrayyes/washy-washy-pdf/actions/workflows/check.yml)
 [![Codecov](https://codecov.io/gh/alrayyes/washy-washy-pdf/graph/badge.svg)](https://codecov.io/gh/alrayyes/washy-washy-pdf)
 [![release](https://github.com/alrayyes/washy-washy-pdf/actions/workflows/release.yml/badge.svg?branch=main)](https://github.com/alrayyes/washy-washy-pdf/actions/workflows/release.yml)
+[![npm](https://img.shields.io/npm/v/@washy-washy/pdf)](https://www.npmjs.com/package/@washy-washy/pdf)
 [![licence: GPL v3+](https://img.shields.io/badge/licence-GPL--3.0--or--later-blue.svg)](LICENSE)
 
 # @washy-washy/pdf
