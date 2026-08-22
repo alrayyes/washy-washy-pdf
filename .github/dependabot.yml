@@ -1,0 +1,50 @@
+# Every dependency here is pinned to an exact version, which is the whole
+# reason this file earns its place: a pinned version cannot drift, so the
+# upgrade has to arrive as a pull request that runs the tests rather than as a
+# resolution nobody reviewed.
+version: 2
+
+updates:
+  - package-ecosystem: bun
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 10
+    commit-message:
+      # commitlint gates every commit that lands, and Dependabot's default
+      # subject is not a Conventional Commit. chore: is right for a dev
+      # dependency and deps: would release nothing, so production bumps say
+      # fix: and take a patch.
+      prefix: fix
+      prefix-development: chore
+      include: scope
+    ignore:
+      # Held at 9.x deliberately. 10.x exports the new-style preset config
+      # ({commits, parser, writer}) and @semantic-release/release-notes-generator
+      # 14 still reads writerOpts, so the notes come out as a version heading
+      # with nothing under it and no step fails. Dependabot bumps merge
+      # themselves here, so without this the fix would be undone by a bot.
+      # Lift it when the generator understands the new shape.
+      - dependency-name: conventional-changelog-conventionalcommits
+        update-types: ["version-update:semver-major"]
+    groups:
+      # One pull request for the linters rather than five. They move together,
+      # they are all development-only, and each one on its own is a review
+      # nobody learns anything from.
+      linters:
+        dependency-type: development
+        patterns:
+          - "@biomejs/*"
+          - "@commitlint/*"
+          - prettier
+          - markdownlint-cli2
+          - lefthook
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    # Changes the pipeline, not the artifact — releasing for this is noise.
+    commit-message:
+      prefix: ci
+      include: scope

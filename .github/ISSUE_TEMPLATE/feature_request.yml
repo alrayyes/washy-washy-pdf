@@ -1,0 +1,30 @@
+name: Feature request
+description: Propose a new capability or a change to this package
+labels: ["kind/feature"]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: "User story: as a ‹who›, I want ‹what›, so that ‹why›."
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance_criteria
+    attributes:
+      label: Acceptance criteria
+      description: >-
+        3-5 testable rules, Given-When-Then. Each has to be checkable — a
+        command and the output it should give, a file that should say
+        something, a number that should have moved.
+      placeholder: |
+        - Given ..., when ..., then ...
+    validations:
+      required: true
+  - type: textarea
+    id: definition_of_done
+    attributes:
+      label: Definition of done
+      description: Tests written and passing, diff reviewed, docs and README true again, QA'd against the criteria above.
+    validations:
+      required: true

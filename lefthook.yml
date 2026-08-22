@@ -1,0 +1,75 @@
+# Same commands CI runs, so the hook and the gate cannot drift.
+pre-commit:
+  parallel: true
+  jobs:
+    - name: biome
+      glob: "*.{js,jsx,ts,tsx,json,jsonc,css}"
+      run: bunx --bun biome check --write --no-errors-on-unmatched --files-ignore-unknown=true {staged_files}
+      stage_fixed: true
+    # Field order, not formatting — Biome's JSON formatter leaves keys where
+    # they are. Runs after Biome so the two never fight over the same line.
+    - name: package-json
+      glob: "package.json"
+      run: bunx --bun sort-package-json {staged_files}
+      stage_fixed: true
+    # Prettier decides the layout and markdownlint then judges what Prettier
+    # produces, so these two are piped rather than parallel. The other order has
+    # markdownlint fixing something Prettier is about to overwrite.
+    - name: markdown
+      group:
+        piped: true
+        jobs:
+          - name: prettier
+            glob: "*.md"
+            run: bunx --bun prettier --write {staged_files}
+            stage_fixed: true
+          - name: markdownlint
+            glob: "*.md"
+            run: bunx --bun markdownlint-cli2 {staged_files}
+    # Biome does not read YAML, so the workflows and this file are Prettier's
+    # too. Nothing judges the result afterwards the way markdownlint judges the
+    # Markdown, so it is one job rather than a pipe.
+    - name: yaml
+      glob: "*.{yml,yaml}"
+      run: bunx --bun prettier --write {staged_files}
+      stage_fixed: true
+    # Error level only. Vale's warnings are style advice, and advice that blocks
+    # a commit is how you teach someone to reach for --no-verify; `bun run
+    # lint:prose:advice` and the CI job are where the full read lives. LTeX is
+    # deliberately absent — a ~300 MB download with its own Java runtime is more
+    # than a commit should wait on, so it runs in CI and in the editor over LSP.
+    # CHANGELOG.md is excluded here as well as in `lint:prose`, because this job
+    # is handed the staged files by name and never sees that script's glob.
+    - name: vale
+      glob: "*.md"
+      exclude:
+        - CHANGELOG.md
+      run: .tools/vale --minAlertLevel=error {staged_files}
+
+commit-msg:
+  jobs:
+    - name: commitlint
+      run: bunx --bun commitlint --edit {1}
+
+# Nothing here writes. A hook that rewrote files under a push would leave the
+# pushed commit and the working tree disagreeing about what was reviewed. Every
+# linter runs in check mode over the whole tree rather than the staged set, so a
+# file that reached a commit through --no-verify or arrived in a rebase is still
+# caught before it is anyone else's problem.
+pre-push:
+  parallel: true
+  jobs:
+    - name: biome
+      run: bun run lint
+    - name: markdownlint
+      run: bun run lint:md
+    - name: yaml
+      run: bun run lint:yaml
+    - name: package-json
+      run: bun run lint:package-json
+    - name: vale
+      run: bun run lint:prose
+    - name: typecheck
+      run: bun run typecheck
+    - name: test
+      run: bun test

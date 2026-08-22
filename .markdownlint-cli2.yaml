@@ -1,0 +1,32 @@
+config:
+  # Prose wraps where it reads best; a hard column limit fights that.
+  MD013: false
+  # The README opens with a badge row, not a heading.
+  MD041: false
+
+  # Below here: layout Prettier already decides. Prettier runs first and
+  # markdownlint judges what it produced, so leaving these on would only give us
+  # a hook that fails twice and fixes nothing.
+  # List markers.
+  MD004: false
+  # List indentation.
+  MD007: false
+  # Consecutive blank lines.
+  MD012: false
+  # Emphasis characters.
+  MD049: false
+  MD050: false
+
+globs:
+  - "**/*.md"
+
+ignores:
+  - "**/node_modules/**"
+  - "dist/**"
+  # Vendored by `vale sync`. Generated text belongs to nobody.
+  - "styles/Google/**"
+  - "styles/proselint/**"
+  # Written by semantic-release from the commit subjects, and committed by the
+  # release job without passing through any hook. Linting it means failing a
+  # run over prose no human chose and no human can fix in place.
+  - "CHANGELOG.md"
