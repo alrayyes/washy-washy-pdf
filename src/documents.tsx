@@ -32,6 +32,17 @@ import { theme } from "./theme";
 const { colour, font } = theme;
 
 const A4 = { width: 595.28, height: 841.89 };
+/**
+ * The phone sheet's fixed page width, in points — 244pt is roughly the
+ * width of a phone screen at a comfortable reading zoom.
+ *
+ * @example
+ * ```ts
+ * import { PHONE_WIDTH } from "@washy-washy/pdf";
+ *
+ * console.log(PHONE_WIDTH); // 244
+ * ```
+ */
 const PHONE_WIDTH = 244;
 
 function ironLabel(machine: Machine, item: ResolvedInstruction): string {
@@ -496,7 +507,19 @@ function Legend({ last = false, variant = "full" }: { last?: boolean; variant?: 
   );
 }
 
-/** The phone version: one narrow page you scroll from top to bottom. */
+/**
+ * The phone version: one narrow page you scroll from top to bottom.
+ *
+ * @example
+ * ```tsx
+ * import { pdf } from "@react-pdf/renderer";
+ * import { PhoneDocument } from "@washy-washy/pdf";
+ *
+ * const blob = await pdf(
+ *   PhoneDocument({ items, height: 1600, machine }),
+ * ).toBlob();
+ * ```
+ */
 export function PhoneDocument({
   items,
   height,
@@ -827,7 +850,19 @@ function ReferenceSheet({
   );
 }
 
-/** The reference sheet on its own, which is what the fitting pass measures. */
+/**
+ * The reference sheet on its own, which is what the fitting pass measures.
+ *
+ * @example
+ * ```tsx
+ * import { pdf } from "@react-pdf/renderer";
+ * import { ReferenceDocument } from "@washy-washy/pdf";
+ *
+ * const blob = await pdf(
+ *   ReferenceDocument({ items, machine, density: 1 }),
+ * ).toBlob();
+ * ```
+ */
 export function ReferenceDocument({
   items,
   machine,
@@ -848,7 +883,19 @@ export function ReferenceDocument({
   );
 }
 
-/** The printable version: a reference sheet, then two detail cards per page. */
+/**
+ * The printable version: a reference sheet, then two detail cards per page.
+ *
+ * @example
+ * ```tsx
+ * import { pdf } from "@react-pdf/renderer";
+ * import { PrintDocument } from "@washy-washy/pdf";
+ *
+ * const blob = await pdf(
+ *   PrintDocument({ items, machine, density: 1 }),
+ * ).toBlob();
+ * ```
+ */
 export function PrintDocument({
   items,
   machine,

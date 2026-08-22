@@ -65,6 +65,15 @@ export interface PhoneRender {
  * the height is found by rendering: grow until it stops spilling onto a second
  * page, then bisect back down until the trailing blank space is under a
  * centimetre. Each pass is a few tens of milliseconds.
+ *
+ * @example
+ * ```ts
+ * import { renderPhone } from "@washy-washy/pdf";
+ * import { resolve } from "@washy-washy/core";
+ *
+ * const items = resolve(instructions);
+ * const { pdf, height, attempts } = await renderPhone(items, machine);
+ * ```
  */
 export async function renderPhone(
   items: ResolvedInstruction[],
@@ -153,6 +162,23 @@ async function fittingDensity(
   return tight;
 }
 
+/**
+ * Renders the printable A4 sheet: a reference table first, then a detail
+ * card per pile.
+ *
+ * The table and card density is measured the same way `renderPhone` measures
+ * height, in the other direction — the page size is fixed, so the type sets
+ * tighter until the sheet fits on one page.
+ *
+ * @example
+ * ```ts
+ * import { renderPrint } from "@washy-washy/pdf";
+ * import { resolve } from "@washy-washy/core";
+ *
+ * const items = resolve(instructions);
+ * const pdfBytes = await renderPrint(items, machine);
+ * ```
+ */
 export async function renderPrint(
   items: ResolvedInstruction[],
   machine: Machine,

@@ -5,6 +5,7 @@
       "**",
       "!**/node_modules",
       "!dist",
+      "!docs-site",
       "!**/test-results",
       "!styles/Google",
       "!styles/proselint"

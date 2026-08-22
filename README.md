@@ -7,6 +7,7 @@ do not add one that reads "unknown".
 [![Codecov](https://codecov.io/gh/alrayyes/washy-washy-pdf/graph/badge.svg)](https://codecov.io/gh/alrayyes/washy-washy-pdf)
 [![release](https://github.com/alrayyes/washy-washy-pdf/actions/workflows/release.yml/badge.svg?branch=main)](https://github.com/alrayyes/washy-washy-pdf/actions/workflows/release.yml)
 [![npm](https://img.shields.io/npm/v/@washy-washy/pdf)](https://www.npmjs.com/package/@washy-washy/pdf)
+[![docs](https://github.com/alrayyes/washy-washy-pdf/actions/workflows/docs.yml/badge.svg?branch=main)](https://alrayyes.github.io/washy-washy-pdf/)
 [![licence: GPL v3+](https://img.shields.io/badge/licence-GPL--3.0--or--later-blue.svg)](LICENSE)
 
 # @washy-washy/pdf
@@ -56,6 +57,10 @@ half left out, for whichever room you're standing in.
 `PhoneDocument`, `PrintDocument`, and `ReferenceDocument` are also exported
 directly, for rendering with your own `@react-pdf/renderer` pipeline instead
 of the bisecting helpers above.
+
+The full API reference — every export, its signature, and a runnable
+example — is generated with TypeDoc and published at
+[`alrayyes.github.io/washy-washy-pdf`](https://alrayyes.github.io/washy-washy-pdf/).
 
 ## Contributing
 
