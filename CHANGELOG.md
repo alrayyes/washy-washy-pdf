@@ -1,3 +1,9 @@
+## [1.1.1](https://github.com/alrayyes/washy-washy-pdf/compare/v1.1.0...v1.1.1) (2026-08-22)
+
+### Bug Fixes
+
+* unbounded overflow — unwrappable tall cards, ever-narrowing matrix cells, clipping labels ([#27](https://github.com/alrayyes/washy-washy-pdf/issues/27)) ([4d6e957](https://github.com/alrayyes/washy-washy-pdf/commit/4d6e9570f62d9267ad3904221fe72ae077e3bfba)), closes [#17](https://github.com/alrayyes/washy-washy-pdf/issues/17)
+
 ## [1.1.0](https://github.com/alrayyes/washy-washy-pdf/compare/v1.0.4...v1.1.0) (2026-08-22)
 
 ### Features
