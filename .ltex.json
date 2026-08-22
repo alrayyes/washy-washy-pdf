@@ -25,6 +25,8 @@
       "typecheck",
       "typechecks",
       "washy",
+      "washy-washy-cli",
+      "WinAnsi",
       "writable"
     ]
   },

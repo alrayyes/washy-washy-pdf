@@ -3,7 +3,7 @@
 The [README](README.md) is for whoever installs this package. This file is for
 whoever changes it.
 
-This package draws the PDFs `washy-washy-cli` generates and the web app
+This package draws the PDFs `washy-washy-cli` generates, and the web app
 previews — the `@react-pdf/renderer` components and the layout-fitting logic,
 split out so either can depend on just the rendering layer.
 
@@ -84,8 +84,9 @@ tooling terms go in the dictionaries —
 
 `test/render.test.ts` renders against a self-contained fixture machine — no
 CLI, no `data/` directory, nothing this package can't build from a literal —
-and checks that the reference sheet stays on one page as piles pile up rather
-than silently coming back nearly blank when the content overflows.
+and checks that the reference sheet stays on one page as more piles are
+added, rather than silently coming back nearly blank when the content
+overflows.
 
 ## The git hooks
 
