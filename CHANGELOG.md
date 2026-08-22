@@ -1,3 +1,9 @@
+## [1.0.3](https://github.com/alrayyes/washy-washy-pdf/compare/v1.0.2...v1.0.3) (2026-08-22)
+
+### Bug Fixes
+
+* swap the mix matrix's emphasis so blockers outweigh OK ([0b4c1b4](https://github.com/alrayyes/washy-washy-pdf/commit/0b4c1b4f584fcee3f6b62af5e0913e9ed8b0f649)), closes [#11](https://github.com/alrayyes/washy-washy-pdf/issues/11)
+
 ## [1.0.2](https://github.com/alrayyes/washy-washy-pdf/compare/v1.0.1...v1.0.2) (2026-08-22)
 
 ### Bug Fixes
