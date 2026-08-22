@@ -1,0 +1,40 @@
+# Dependency bumps merge themselves once every check has passed.
+#
+# This is not a licence for a bot to commit whatever it likes. GitHub's
+# auto-merge holds the pull request until the required checks are green and the
+# branch is up to date, so the tests are still the gate — the only thing given
+# away is the click. Everything else still goes through a human.
+name: dependabot auto-merge
+
+on: pull_request_target
+
+permissions:
+  contents: read
+
+jobs:
+  auto-merge:
+    # pull_request_target runs with write access against the base repository,
+    # so it must never check out or execute the pull request's code. This job
+    # runs one gh command and nothing else. The actor check is what stops a
+    # branch named to look like Dependabot's from reaching it.
+    if: github.event.pull_request.user.login == 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      # Squashed with a subject commitlint accepts. Dependabot writes "Bump x
+      # from a to b" and config-conventional refuses the capital B, so the
+      # commit that reaches main is retitled here rather than the rule being
+      # relaxed for everyone else.
+      #
+      # --auto is the whole safety story: it holds the pull request until the
+      # required checks on main have passed.
+      - name: Wave it through once the checks are green
+        run: |
+          subject=$(printf '%s' "$PR_TITLE" | sed -E 's/^([a-z]+(\([^)]*\))?: )([A-Z])/\1\l\3/')
+          gh pr merge --auto --squash --subject "$subject" "$PR_URL"
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

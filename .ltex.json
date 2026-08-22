@@ -1,0 +1,43 @@
+{
+  "language": "en-GB",
+  "dictionary": {
+    "en-GB": [
+      "Biome",
+      "Codecov",
+      "Dependabot",
+      "GitHub",
+      "JSONC",
+      "LanguageTool",
+      "LTeX",
+      "Washy",
+      "bunx",
+      "commitlint",
+      "filesystem",
+      "gitignored",
+      "lefthook",
+      "linted",
+      "lockfile",
+      "markdownlint",
+      "npm",
+      "postinstall",
+      "proselint",
+      "tsdown",
+      "typecheck",
+      "typechecks",
+      "washy",
+      "washy-washy-cli",
+      "WinAnsi",
+      "writable"
+    ]
+  },
+  "disabledRules": {
+    "en-GB": [
+      "PASSIVE_VOICE",
+      "UPPERCASE_SENTENCE_START",
+      "THIS_NNS",
+      "LICENCE_LICENSE_NOUN_SINGULAR",
+      "OXFORD_SPELLING_Z_NOT_S",
+      "ENGLISH_WORD_REPEAT_RULE"
+    ]
+  }
+}

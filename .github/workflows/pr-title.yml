@@ -1,0 +1,47 @@
+# Merges here are squashes, so the pull request title becomes the subject of the
+# commit that lands on main and the branch commits become its body. The `commits`
+# job in check.yml lints the branch — which is exactly the half a squash throws
+# away. Nothing read the title, and semantic-release reads nothing else.
+name: pr-title
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, edited]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  # Dependabot is exempt for the same reason the commits job in check.yml is:
+  # its title is always "Bump x from a to b", and config-conventional's
+  # subject-case rule refuses the capital B. What lands on main is
+  # normalised by the auto-merge workflow's squash subject instead, so main
+  # stays conventional without this job failing on every dependency bump.
+  pr-title:
+    if: github.actor != 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version: 1.4.0
+      - run: bun install --frozen-lockfile
+      # The title goes through the environment, never interpolated into the
+      # script. `${{ }}` inside a run: is substituted before the shell sees it,
+      # so a pull request titled with a backtick would run as code — and anyone
+      # can open one.
+      - name: Lint the pull request title
+        env:
+          TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          printf '%s\n' "$TITLE" | bunx --bun commitlint --verbose || {
+            echo "::error::The pull request title is not a Conventional Commit."
+            echo "::error::A squash merge makes it the subject on main, and"
+            echo "::error::semantic-release reads it to decide the next version."
+            echo "::error::See the pull requests section of CONTRIBUTING.md."
+            exit 1
+          }

@@ -1,0 +1,134 @@
+# Runs the same commands as the git hooks in lefthook.yml, so the two cannot
+# drift: the hook catches it early, this is the gate that cannot be skipped.
+#
+# Every action is pinned to a commit SHA with the version in the comment. A tag
+# like v7 is a mutable pointer someone else controls, and a workflow with write
+# permission is not a thing to hand to a moving target.
+name: check
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# Nothing here needs more than the source it was given.
+permissions:
+  contents: read
+
+# A push that supersedes an older run cancels it rather than queueing behind it.
+# main is excluded: its runs are what the release job waits on.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version: 1.4.0
+      - run: bun install --frozen-lockfile
+      - run: bun run lint
+      - run: bun run lint:md
+      - run: bun run lint:yaml
+      - run: bun run lint:package-json
+      - run: bun run typecheck
+      - run: bun run build
+      # A broken `files`/`exports` entry surfaces here rather than at
+      # semantic-release publish time. See washy-washy-sdk#1's identical
+      # acceptance criterion.
+      - name: Confirm the published tarball only carries dist, README, LICENSE
+        run: |
+          npm pack --dry-run 2>&1 | tee /tmp/pack.log
+          ! grep -qE '(^|/)(src|test)/' /tmp/pack.log
+      - run: bun test --coverage --coverage-reporter=lcov
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: coverage/lcov.info
+          fail_ci_if_error: true
+
+  # The commit-msg hook already reads every message, but a hook is skippable and
+  # these messages are load-bearing: semantic-release reads the Conventional
+  # Commits that landed to decide the next version, so a stray "wip" is a
+  # release that does not happen. Pull requests only — there is no range to
+  # check on a push, and rewriting history to fix an old message is worse than
+  # the typo. fetch-depth 0 because the range needs both ends of it.
+  #
+  # Dependabot is exempt. Its subject is always "Bump x from a to b", and
+  # config-conventional's subject-case rule rejects the capital B — which is
+  # not something a bot can be argued with about. What lands on main is
+  # normalised by the auto-merge workflow's squash subject instead, so main
+  # stays conventional without this job failing on every dependency bump.
+  commits:
+    if: github.event_name == 'pull_request' && github.actor != 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version: 1.4.0
+      # commitlint resolves @commitlint/config-conventional as a sibling
+      # package, so bunx alone will not find it.
+      - run: bun install --frozen-lockfile
+      - run: bunx --bun commitlint --from "${{ github.event.pull_request.base.sha }}" --to HEAD --verbose
+
+  # Catches a pull request that introduces a *new* dependency already known
+  # bad, at merge time rather than waiting for Dependabot's next scheduled
+  # scan. Free on a public repo — no GitHub Advanced Security licence needed,
+  # unlike on a private one.
+  dependency-review:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294 # v5.0.0
+
+  # Prose gets its own two jobs rather than a line in the one above, so that
+  # when the run goes red the job name says which tier failed: a grammar error
+  # is a mistake and a style alert is an opinion, answered differently.
+
+  # Mechanics. LanguageTool's rule database — grammar, spelling, punctuation,
+  # the phonetic article — and mechanics have a right answer, so this blocks.
+  ltex:
+    runs-on: ubuntu-latest
+    env:
+      LTEX_VERSION: "18.7.0"
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Fetch ltex-cli-plus
+        run: |
+          curl -sSfL -o ltex.tar.gz \
+            "https://github.com/ltex-plus/ltex-ls-plus/releases/download/${LTEX_VERSION}/ltex-ls-plus-${LTEX_VERSION}-linux-x64.tar.gz"
+          tar xzf ltex.tar.gz
+          # The release carries its own Java 21, but the launcher is a Gradle
+          # start script and prefers JAVA_HOME — which a GitHub runner sets to
+          # its own Java 17. The class files are version 65 and 17 reads up to
+          # 61, so it fails to load rather than falling back. Point JAVA_HOME
+          # at the runtime that shipped beside it.
+          echo "JAVA_HOME=$PWD/$(ls -d ltex-ls-plus-${LTEX_VERSION}/jdk-*)" >> "$GITHUB_ENV"
+      # It reports findings with exit code 3, not 1, so a step testing for a
+      # specific code would pass a failing document. Let the shell judge
+      # non-zero. The files are named rather than passing `.`: LTeX traverses
+      # recursively and reads plain text as prose, so a bare dot lints the
+      # committed Vale vocabulary as though it were a document.
+      - run: ./ltex-ls-plus-${LTEX_VERSION}/bin/ltex-cli-plus --client-configuration=.ltex.json README.md CONTRIBUTING.md SECURITY.md
+
+  # Style. House voice, weasel words, wordiness, undefined jargon. Advice
+  # rather than a verdict: Vale exits non-zero only on error-severity alerts,
+  # so its warnings are reported without failing anything.
+  vale:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version: 1.4.0
+      - run: bun install --frozen-lockfile
+      - run: bun run prose:sync
+      - run: bun run lint:prose:advice
