@@ -1,3 +1,9 @@
+## [1.1.0](https://github.com/alrayyes/washy-washy-pdf/compare/v1.0.4...v1.1.0) (2026-08-22)
+
+### Features
+
+* page numbers, running header, and fuller metadata on the print sheets ([#24](https://github.com/alrayyes/washy-washy-pdf/issues/24)) ([b8b66af](https://github.com/alrayyes/washy-washy-pdf/commit/b8b66af12681aeab93e95033264433d3b233f31f)), closes [#13](https://github.com/alrayyes/washy-washy-pdf/issues/13)
+
 ## [1.0.4](https://github.com/alrayyes/washy-washy-pdf/compare/v1.0.3...v1.0.4) (2026-08-22)
 
 ### Bug Fixes
