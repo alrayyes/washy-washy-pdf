@@ -61,6 +61,8 @@ of the bisecting helpers above.
 The full API reference — every export, its signature, and a runnable
 example — is generated with TypeDoc and published at
 [`alrayyes.github.io/washy-washy-pdf`](https://alrayyes.github.io/washy-washy-pdf/).
+`@washy-washy/core`'s own reference lives at
+[`alrayyes.github.io/washy-washy-core`](https://alrayyes.github.io/washy-washy-core/).
 
 ## Contributing
 
