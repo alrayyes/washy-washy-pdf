@@ -1,3 +1,9 @@
+## [1.0.4](https://github.com/alrayyes/washy-washy-pdf/compare/v1.0.3...v1.0.4) (2026-08-22)
+
+### Bug Fixes
+
+* floor the reference sheet's density-scaled type, scale the grid instead ([#23](https://github.com/alrayyes/washy-washy-pdf/issues/23)) ([30d2cfc](https://github.com/alrayyes/washy-washy-pdf/commit/30d2cfcbe63d4fb32a2b5d5775a89f6d7b377b0f)), closes [#12](https://github.com/alrayyes/washy-washy-pdf/issues/12)
+
 ## [1.0.3](https://github.com/alrayyes/washy-washy-pdf/compare/v1.0.2...v1.0.3) (2026-08-22)
 
 ### Bug Fixes
