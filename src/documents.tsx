@@ -32,6 +32,15 @@ import { theme } from "./theme";
 const { colour, font } = theme;
 
 const A4 = { width: 595.28, height: 841.89 };
+/** Both reference-sheet pages use this margin on every side. */
+const PAGE_MARGIN = 36;
+/**
+ * How wide a hand-laid-out row on the reference sheet is allowed to be —
+ * the printable width once the page margin comes off both sides. Every
+ * variant's `summaryColumns` widths plus the row-number gutter have to sum
+ * to at most this, checked by `test/documents.test.ts`.
+ */
+export const TABLE_WIDTH_BUDGET = A4.width - PAGE_MARGIN * 2;
 /**
  * The phone sheet's fixed page width, in points — 244pt is roughly the
  * width of a phone screen at a comfortable reading zoom.
@@ -595,11 +604,11 @@ function gist(prose: string): string {
 /**
  * What the pinned sheet lists per pile, which differs by sheet.
  *
- * The columns are laid out by hand rather than flexed, so their widths have to
- * come to less than the A4 minus its margins — 523 pt — with 14 pt of that
- * already spent on the row number.
+ * The columns are laid out by hand rather than flexed, so their widths plus
+ * the 14pt row-number gutter have to come to at most `TABLE_WIDTH_BUDGET` —
+ * checked by `test/documents.test.ts`, not just this comment.
  */
-function summaryColumns(machine: Machine, variant: Variant): Column[] {
+export function summaryColumns(machine: Machine, variant: Variant): Column[] {
   if (variant === "iron") {
     return [
       { label: "Pile", width: 130, value: (i) => i.clothingType },
@@ -625,12 +634,12 @@ function summaryColumns(machine: Machine, variant: Variant): Column[] {
     { label: "°C", width: 26, value: (i) => i.temperature },
     { label: "Spin", width: 30, value: (i) => i.spin },
     { label: "Time", width: 34, value: (i) => i.duration },
-    { label: "Buttons", width: 74, value: (i) => i.options.join(", ") || "—" },
+    { label: "Buttons", width: 72, value: (i) => i.options.join(", ") || "—" },
     { label: "Softener", width: 40, value: (i) => (i.fabricSoftener ? "yes" : "no") },
     ...(variant === "full"
       ? [{ label: "Iron", width: 40, value: (i: ResolvedInstruction) => ironLabel(machine, i) }]
       : []),
-    { label: "Detergent", width: variant === "full" ? 90 : 130, value: (i) => gist(i.detergent) },
+    { label: "Detergent", width: variant === "full" ? 87 : 127, value: (i) => gist(i.detergent) },
   ];
 }
 
@@ -833,7 +842,7 @@ function ReferenceSheet({
   const rows = variant === "iron" ? ironGroups(items, ironSettingKeys(machine)).flat() : items;
 
   return (
-    <Page size={[A4.width, A4.height]} style={{ padding: 36, backgroundColor: "#fff" }}>
+    <Page size={[A4.width, A4.height]} style={{ padding: PAGE_MARGIN, backgroundColor: "#fff" }}>
       <Masthead subtitle={sheet[variant].print} />
       {variant !== "iron" && <Loads items={items} />}
       <SummaryTable items={rows} density={density} variant={variant} />
@@ -919,7 +928,10 @@ export function PrintDocument({
         `wrap={false}`, so one is never split across a page break; how many
         land on a sheet depends on how much prose the CSV carries.
       */}
-        <Page size={[A4.width, A4.height]} style={{ padding: 36, backgroundColor: "#fff" }}>
+        <Page
+          size={[A4.width, A4.height]}
+          style={{ padding: PAGE_MARGIN, backgroundColor: "#fff" }}
+        >
           {groups.map((group, index) =>
             variant === "iron" ? (
               <IronCard

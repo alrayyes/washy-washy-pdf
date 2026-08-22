@@ -1,8 +1,12 @@
 import { describe, expect, test } from "bun:test";
-import { resolve } from "@washy-washy/core/browser";
+import { resolve, variants } from "@washy-washy/core/browser";
+import { summaryColumns, TABLE_WIDTH_BUDGET } from "../src/documents";
 import { renderPrint } from "../src/render";
 import { MACHINE, pile } from "./fixtures";
 import { pageText } from "./pdf-text";
+
+/** Same gutter `SummaryTable` gives the row-number column. */
+const ROW_NUMBER_GUTTER = 14;
 
 describe("Card temperature", () => {
   // #10: the card hardcoded the Dutch "koud" for a cold wash instead of
@@ -24,4 +28,20 @@ describe("Card temperature", () => {
 
     expect(text).toContain("Cottons 60 °C ·");
   });
+});
+
+describe("summaryColumns", () => {
+  // #15: the widths are laid out by hand, not flexed, so nothing stops them
+  // drifting past the page's printable width except this test — the "full"
+  // and "wash" variants had already overrun it by 5pt before this landed.
+  for (const variant of variants) {
+    test(`${variant} stays within the table width budget`, () => {
+      const width = summaryColumns(MACHINE, variant).reduce(
+        (total, column) => total + column.width,
+        ROW_NUMBER_GUTTER,
+      );
+
+      expect(width).toBeLessThanOrEqual(TABLE_WIDTH_BUDGET);
+    });
+  }
 });
