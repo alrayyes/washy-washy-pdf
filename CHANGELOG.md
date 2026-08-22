@@ -1,3 +1,9 @@
+## [2.0.1](https://github.com/alrayyes/washy-washy-pdf/compare/v2.0.0...v2.0.1) (2026-08-22)
+
+### Bug Fixes
+
+* legend row can no longer split, leaving a near-blank reference-sheet page 2 ([#35](https://github.com/alrayyes/washy-washy-pdf/issues/35)) ([ba6b505](https://github.com/alrayyes/washy-washy-pdf/commit/ba6b5050c685c05545fc7d876c1e92672e88dab4)), closes [#26](https://github.com/alrayyes/washy-washy-pdf/issues/26) [washy-washy-cli#128](https://github.com/alrayyes/washy-washy-cli/issues/128) [#34](https://github.com/alrayyes/washy-washy-pdf/issues/34) [#26](https://github.com/alrayyes/washy-washy-pdf/issues/26)
+
 ## [2.0.0](https://github.com/alrayyes/washy-washy-pdf/compare/v1.1.1...v2.0.0) (2026-08-22)
 
 ### ⚠ BREAKING CHANGES
