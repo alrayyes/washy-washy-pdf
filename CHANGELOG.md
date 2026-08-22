@@ -1,3 +1,9 @@
+## [1.0.1](https://github.com/alrayyes/washy-washy-pdf/compare/v1.0.0...v1.0.1) (2026-08-22)
+
+### Bug Fixes
+
+* cards print the machine's own word for a cold wash, not 'koud' ([f35943b](https://github.com/alrayyes/washy-washy-pdf/commit/f35943b9e764d79f4671e9eb64aa8a2ecca83862)), closes [#10](https://github.com/alrayyes/washy-washy-pdf/issues/10)
+
 ## 1.0.0 (2026-08-22)
 
 ### Features
