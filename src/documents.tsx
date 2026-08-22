@@ -95,21 +95,24 @@ function sheetGroups(
   return cardGroups(items);
 }
 
-const sheet: Record<Variant, { title: string; phone: string; print: string }> = {
+const sheet: Record<Variant, { title: string; phone: string; print: string; card: string }> = {
   full: {
     title: "Washing instructions",
     phone: "Scroll for the pile you are holding.",
     print: "Pin this next to the machine.",
+    card: "One pile, on its own.",
   },
   wash: {
     title: "Washing instructions (washing only)",
     phone: "Getting it into the machine. Ironing is on the other sheet.",
     print: "Pin this next to the machine. Ironing is on the other sheet.",
+    card: "One pile, on its own. Ironing is on the other sheet.",
   },
   iron: {
     title: "Washing instructions (ironing only)",
     phone: "At the board. Washing is on the other sheet.",
     print: "Pin this next to the board. Washing is on the other sheet.",
+    card: "One pile, on its own. Washing is on the other sheet.",
   },
 };
 
@@ -596,6 +599,23 @@ function Legend({ last = false, variant = "full" }: { last?: boolean; variant?: 
   );
 }
 
+/** The machine's own numbers, not a promise — shown wherever a duration is. */
+function DurationDisclaimer() {
+  return (
+    <Text
+      style={{
+        fontFamily: font.oblique,
+        fontSize: 6,
+        color: colour.faint,
+        marginTop: 4,
+        textAlign: "center",
+      }}
+    >
+      Durations are the machine's own estimates and vary with load.
+    </Text>
+  );
+}
+
 /**
  * The phone version: one narrow page you scroll from top to bottom.
  *
@@ -650,19 +670,57 @@ export function PhoneDocument({
               />
             ),
           )}
-          {variant !== "iron" && (
-            <Text
-              style={{
-                fontFamily: font.oblique,
-                fontSize: 6,
-                color: colour.faint,
-                marginTop: 4,
-                textAlign: "center",
-              }}
-            >
-              Durations are the machine's own estimates and vary with load.
-            </Text>
+          {variant !== "iron" && <DurationDisclaimer />}
+        </Page>
+      </Document>
+    </ApplianceContext.Provider>
+  );
+}
+
+/**
+ * One pile's card, on its own sheet — the machine name line and (unless
+ * ironing is the whole point) the duration disclaimer around it, nothing
+ * else. No loads table, no legend: those answer questions about the whole
+ * chart, and this is one pile downloaded on its own.
+ *
+ * `items` is one resolved group, same as `Card`/`IronCard` take — usually a
+ * single pile, occasionally several sharing identical settings.
+ *
+ * @example
+ * ```tsx
+ * import { pdf } from "@react-pdf/renderer";
+ * import { CardDocument } from "@washy-washy/pdf";
+ *
+ * const blob = await pdf(
+ *   CardDocument({ items: group, height: 500, machine }),
+ * ).toBlob();
+ * ```
+ */
+export function CardDocument({
+  items,
+  height,
+  machine,
+  variant = "full",
+}: {
+  items: ResolvedInstruction[];
+  height: number;
+  machine: Machine;
+  variant?: Variant;
+}) {
+  return (
+    <ApplianceContext.Provider value={machine}>
+      <Document title={`${sheet[variant].title} — card`} {...documentMeta(machine, variant)}>
+        <Page
+          size={{ width: PHONE_WIDTH, height }}
+          style={{ padding: 12, backgroundColor: "#fff" }}
+        >
+          <Masthead subtitle={sheet[variant].card} />
+          {variant === "iron" ? (
+            <IronCard group={items} index={1} compact />
+          ) : (
+            <Card group={items} index={1} variant={variant} compact />
           )}
+          {variant !== "iron" && <DurationDisclaimer />}
         </Page>
       </Document>
     </ApplianceContext.Provider>
