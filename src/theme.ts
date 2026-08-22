@@ -14,6 +14,7 @@ export const theme = {
     steam: "#9ec5e8",
     steamSoft: "#eaf2fa",
     yes: "#15803d",
+    yesSoft: "#dcf3e3",
     no: "#b91c1c",
   },
   font: {

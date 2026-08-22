@@ -777,7 +777,7 @@ function MixMatrix({ items, density }: { items: ResolvedInstruction[]; density: 
           {items.map((column, columnIndex) => {
             const self = rowIndex === columnIndex;
             const blocker = self ? null : mixBlocker(row, column);
-            const background = self ? colour.line : blocker ? "#ffffff" : "#dcf3e3";
+            const background = self ? colour.line : blocker ? "#ffffff" : colour.yesSoft;
             return (
               <View
                 key={column.clothingType}
@@ -793,9 +793,13 @@ function MixMatrix({ items, density }: { items: ResolvedInstruction[]; density: 
               >
                 <Text
                   style={{
-                    fontFamily: font.bold,
+                    fontFamily: blocker ? font.bold : font.sans,
                     fontSize: 6 * density,
-                    color: blocker ? colour.faint : colour.yes,
+                    // Inverted from how this used to read: a blocker is the
+                    // thing that ruins a garment, so it gets the loud ink.
+                    // "OK" already has the soft green fill saying "safe" —
+                    // it doesn't need bold, full-strength text as well.
+                    color: blocker ? colour.no : colour.muted,
                   }}
                 >
                   {self ? "" : blocker ? blockerCode[blocker] : "OK"}
@@ -811,7 +815,9 @@ function MixMatrix({ items, density }: { items: ResolvedInstruction[]; density: 
         </Text>
         {[...used].map((blocker) => (
           <Text key={blocker} style={{ fontFamily: font.sans, fontSize: 6.2, color: colour.body }}>
-            {blockerCode[blocker]} — {blockerLegend[blocker].toLowerCase()}
+            <Text style={{ fontFamily: font.bold, color: colour.no }}>{blockerCode[blocker]}</Text>
+            {" — "}
+            {blockerLegend[blocker].toLowerCase()}
           </Text>
         ))}
       </View>
