@@ -20,6 +20,36 @@ split out so it can be depended on without the CLI's Bun-specific tooling.
 The data half — chart parsing, mixing rules, machine validation — is its
 sibling package, [`@washy-washy/core`](https://github.com/alrayyes/washy-washy-sdk).
 
+| The phone sheet, from the top                                                                                                                                                   | A card from the printable set                                                                                                                                                                                 |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| <img src="docs/phone.png" alt="The top of the phone PDF: a loads table with a run time against each load, a note explaining the dial drawings, and the first card" width="260"> | <img src="docs/print-card.png" alt="An A4 page of the printable PDF showing a card with a programme dial, temperature and spin chips, and the iron's thermostat ring with its steam zone marked" width="420"> |
+
+That's a small example chart, not anyone's real laundry — five piles, chosen
+to show a load that shares a drum, a jumper that never sees the iron, and a
+thermostat ring with its steam band marked. Every picture below is a link to
+the PDF it came out of, so you can read the whole sheet rather than a picture
+of the top of it.
+
+**Phone**, top of each sheet:
+
+<p>
+  <a href="docs/phone.pdf"><img src="docs/phone.png" alt="The phone sheet: loads, the dial legend and the first card" width="150"></a>
+  <a href="docs/phone-wash.pdf"><img src="docs/phone-wash.png" alt="The washing-only phone sheet, with no iron on the cards" width="150"></a>
+  <a href="docs/phone-iron.pdf"><img src="docs/phone-iron.png" alt="The ironing-only phone sheet, one card per thermostat position" width="150"></a>
+</p>
+
+**Printable**, the reference sheet each one opens with:
+
+<p>
+  <a href="docs/print.pdf"><img src="docs/print.png" alt="The reference sheet: loads, an at-a-glance table and the compatibility matrix" width="200"></a>
+  <a href="docs/print-wash.pdf"><img src="docs/print-wash.png" alt="The washing-only reference sheet, with no iron column" width="200"></a>
+  <a href="docs/print-iron.pdf"><img src="docs/print-iron.png" alt="The ironing-only reference sheet, every pile against its thermostat position" width="200"></a>
+</p>
+
+`bun run examples` redraws all six from [`scripts/example-chart.ts`](scripts/example-chart.ts);
+`bun run screenshots` re-shoots the PNGs from them. [`test/screenshots.test.ts`](test/screenshots.test.ts)
+fails if the two ever fall out of step.
+
 ## Requirements
 
 - [Bun](https://bun.sh) or Node, with React 19 available.

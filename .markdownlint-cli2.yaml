@@ -10,6 +10,18 @@ config:
   line-length: false
   # The README opens with a badge row, not a heading.
   MD041: false
+  # Markdown's image syntax carries no width, and the screenshots are a tall
+  # phone page next to a wide A4 one — <img> is the only way to show them
+  # side by side at sensible sizes. <a> and <p> come with it, for the gallery
+  # of all six sheets, each picture linking to the PDF it was shot from. A
+  # Markdown table would do the layout, but Prettier pads its cells and LTeX
+  # reads that padding as a repeated space — a table there fails the prose
+  # gate, and these three tags do not.
+  MD033:
+    allowed_elements:
+      - img
+      - a
+      - p
 
 globs:
   - "**/*.md"
