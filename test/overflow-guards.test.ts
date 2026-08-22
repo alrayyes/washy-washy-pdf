@@ -81,6 +81,36 @@ describe("fixed-width labels grow for longer values", () => {
   });
 });
 
+describe("reference sheet overflow", () => {
+  // #26: a chart whose reference sheet overflows page 1 by just the
+  // legend — dial drawing, caption, description paragraph — used to leave
+  // that legend behind on its own near-blank page 2 when the row it sat in
+  // split mid-flow, sometimes losing the whole row and leaving nothing but
+  // the fixed header/footer (empty flow captured under 1000 bytes, the same
+  // floor the CLI's own blank-page guard uses). Ten piles with long enough
+  // detergent/notes prose reliably overflows the reference sheet by exactly
+  // that legend row and nothing more, at the current column widths.
+  test("a reference sheet that overflows by just the legend still delivers it, not a near-blank continuation", async () => {
+    const longNote = (label: string) =>
+      `Detailed care note for ${label} covering fabric, colour and handling instructions that run fairly long to mimic a real chart entry with several clauses.`;
+    const items = resolve(
+      Array.from({ length: 10 }, (_, index) =>
+        pile(index + 1, {
+          detergent: longNote(`pile ${index + 1}`),
+          notes: longNote(`notes ${index + 1}`),
+        }),
+      ),
+    );
+
+    const { pdf } = await renderPrint(items, MACHINE);
+    const ink = await inkPerPage(pdf);
+    expect(ink.filter((n) => n < 1000)).toEqual([]);
+
+    const pages = await pageText(pdf);
+    expect(pages[1]).toContain("twelve o'clock is Cottons");
+  });
+});
+
 describe("bundled example stays visually unchanged", () => {
   // The existing 24-pile stress fixture, unaffected by any of the three
   // guards above — it never reaches the card-height, matrix-cell, or
