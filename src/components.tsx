@@ -3,7 +3,7 @@ import { type Instruction, ironSetting } from "@washy-washy/core/browser";
 import { useMachine } from "./appliances";
 import { theme } from "./theme";
 
-const { colour, font } = theme;
+const { colour, font, type, space } = theme;
 
 function polar(cx: number, cy: number, radius: number, degrees: number) {
   const radians = ((degrees - 90) * Math.PI) / 180;
@@ -70,7 +70,7 @@ export function ProgramDial({ program, size = 76 }: { program: string; size?: nu
         cx={centre}
         cy={centre}
         r={knob}
-        fill="#e8e8ea"
+        fill={colour.knob}
         stroke={colour.line}
         strokeWidth={0.8}
       />
@@ -166,7 +166,7 @@ export function IronDial({
         cx={centre}
         cy={centre}
         r={knob}
-        fill={off ? "#f4f4f5" : "#e8e8ea"}
+        fill={off ? colour.panel : colour.knob}
         stroke={colour.line}
         strokeWidth={0.8}
       />
@@ -214,7 +214,7 @@ export function ChipRow({
   label,
   values,
   selected,
-  size = 7,
+  size = type.base,
 }: {
   label: string;
   values: readonly string[];
@@ -244,11 +244,11 @@ export function ChipRow({
               style={{
                 fontFamily: on ? font.bold : font.sans,
                 fontSize: size,
-                color: on ? "#ffffff" : colour.faint,
-                backgroundColor: on ? colour.accent : "#ffffff",
-                borderWidth: 0.6,
+                color: on ? colour.paper : colour.faint,
+                backgroundColor: on ? colour.accent : colour.paper,
+                borderWidth: space.ruleWidth,
                 borderColor: on ? colour.accent : colour.hairline,
-                borderRadius: 2,
+                borderRadius: space.xs,
                 paddingVertical: 1.4,
                 paddingHorizontal: 3.5,
               }}
@@ -273,11 +273,11 @@ export function ControlPanel({ item, dialSize = 76 }: { item: Instruction; dialS
       style={{
         flexDirection: "row",
         backgroundColor: colour.panel,
-        borderWidth: 0.6,
+        borderWidth: space.ruleWidth,
         borderColor: colour.hairline,
-        borderRadius: 3,
-        padding: 6,
-        gap: 8,
+        borderRadius: space.sm,
+        padding: space.base2,
+        gap: space.lg,
       }}
     >
       <View style={{ alignItems: "center", width: dialSize }}>
@@ -285,7 +285,7 @@ export function ControlPanel({ item, dialSize = 76 }: { item: Instruction; dialS
         <Text
           style={{
             fontFamily: font.bold,
-            fontSize: 7.5,
+            fontSize: type.subtitle,
             color: colour.ink,
             textAlign: "center",
             marginTop: 2,
@@ -293,7 +293,7 @@ export function ControlPanel({ item, dialSize = 76 }: { item: Instruction; dialS
         >
           {item.program}
         </Text>
-        <Text style={{ fontFamily: font.sans, fontSize: 5.8, color: colour.muted }}>
+        <Text style={{ fontFamily: font.sans, fontSize: type.tiny, color: colour.muted }}>
           {position} clockwise from {off}
         </Text>
       </View>
@@ -301,7 +301,7 @@ export function ControlPanel({ item, dialSize = 76 }: { item: Instruction; dialS
       <View style={{ flex: 1, justifyContent: "center" }}>
         <ChipRow label="Temp" values={washer.temperatures} selected={[item.temperature]} />
         <ChipRow label="Spin rpm" values={washer.spins} selected={[item.spin]} />
-        <ChipRow label="Buttons" values={washer.options} selected={item.options} size={6.4} />
+        <ChipRow label="Buttons" values={washer.options} selected={item.options} size={type.chip} />
       </View>
     </View>
   );
@@ -319,20 +319,20 @@ export function IronPanel({ items, dialSize = 62 }: { items: Instruction[]; dial
         flexDirection: "row",
         alignItems: "center",
         backgroundColor: colour.panel,
-        borderWidth: 0.6,
+        borderWidth: space.ruleWidth,
         borderColor: colour.hairline,
-        borderRadius: 3,
-        padding: 6,
-        gap: 8,
+        borderRadius: space.sm,
+        padding: space.base2,
+        gap: space.lg,
       }}
     >
       <IronDial setting={item.ironSetting} off={!item.ironing} size={dialSize} />
       <View style={{ flex: 1 }}>
-        <Text style={{ fontFamily: font.bold, fontSize: 8.5, color: colour.ink }}>
+        <Text style={{ fontFamily: font.bold, fontSize: type.emphasis, color: colour.ink }}>
           {setting ? `${setting.label} — ${setting.detail}` : "Do not iron"}
         </Text>
         {setting && (
-          <Text style={{ fontFamily: font.sans, fontSize: 6.2, color: colour.muted }}>
+          <Text style={{ fontFamily: font.sans, fontSize: type.small, color: colour.muted }}>
             {setting.steam ? "inside the steam zone" : "below the steam zone — dry iron only"}
           </Text>
         )}
@@ -340,7 +340,12 @@ export function IronPanel({ items, dialSize = 62 }: { items: Instruction[]; dial
           Only the notes. The heading above has already said whether you iron
           this, so a line under it reading "Don't." is a line of nothing.
         */}
-        <Prose items={items} pick={(entry) => entry.ironingNotes} size={7.2} marginTop={2.5} />
+        <Prose
+          items={items}
+          pick={(entry) => entry.ironingNotes}
+          size={type.prose}
+          marginTop={2.5}
+        />
       </View>
     </View>
   );
@@ -354,7 +359,7 @@ export function IronPanel({ items, dialSize = 62 }: { items: Instruction[]; dial
 function Prose({
   items,
   pick,
-  size = 7.6,
+  size = type.body,
   marginTop = 0,
   emphasis = false,
 }: {
@@ -411,11 +416,11 @@ export function SplitField({
   if (items.every((item) => pick(item) === "")) return null;
 
   return (
-    <View style={{ marginTop: 3.5 }}>
+    <View style={{ marginTop: space.sm2 }}>
       <Text
         style={{
           fontFamily: font.bold,
-          fontSize: 5.8,
+          fontSize: type.tiny,
           letterSpacing: 0.6,
           color: colour.muted,
         }}
@@ -438,11 +443,11 @@ export function Field({
   emphasis?: boolean;
 }) {
   return (
-    <View style={{ marginTop: 3.5 }}>
+    <View style={{ marginTop: space.sm2 }}>
       <Text
         style={{
           fontFamily: font.bold,
-          fontSize: 5.8,
+          fontSize: type.tiny,
           letterSpacing: 0.6,
           color: colour.muted,
         }}
@@ -452,7 +457,7 @@ export function Field({
       <Text
         style={{
           fontFamily: emphasis ? font.bold : font.sans,
-          fontSize: 7.6,
+          fontSize: type.body,
           lineHeight: 1.35,
           color: emphasis ? colour.ink : colour.body,
         }}
@@ -464,15 +469,15 @@ export function Field({
 }
 
 /** Green tick / red cross for the fabric-softener column. */
-export function SoftenerBadge({ on, size = 7.5 }: { on: boolean; size?: number }) {
+export function SoftenerBadge({ on, size = type.subtitle }: { on: boolean; size?: number }) {
   return (
     <Text
       style={{
         fontFamily: font.bold,
         fontSize: size,
-        color: "#ffffff",
+        color: colour.paper,
         backgroundColor: on ? colour.yes : colour.no,
-        borderRadius: 2,
+        borderRadius: space.xs,
         paddingVertical: 1.4,
         paddingHorizontal: 4,
       }}

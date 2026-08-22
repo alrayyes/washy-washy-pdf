@@ -29,7 +29,7 @@ import {
 } from "./components";
 import { theme } from "./theme";
 
-const { colour, font } = theme;
+const { colour, font, type, space } = theme;
 
 const A4 = { width: 595.28, height: 841.89 };
 /** Both reference-sheet pages use this margin on every side. */
@@ -148,7 +148,7 @@ function RunningHeader({ machine, variant }: { machine: Machine; variant: Varian
         left: PAGE_MARGIN,
         right: PAGE_MARGIN,
         fontFamily: font.sans,
-        fontSize: 7,
+        fontSize: type.base,
         color: colour.muted,
       }}
     />
@@ -170,7 +170,7 @@ function PageFooter() {
         right: PAGE_MARGIN,
         textAlign: "right",
         fontFamily: font.sans,
-        fontSize: 6.5,
+        fontSize: type.footnote,
         color: colour.faint,
       }}
     />
@@ -182,10 +182,10 @@ function SectionHeading({ children }: { children: string }) {
     <Text
       style={{
         fontFamily: font.bold,
-        fontSize: 6,
+        fontSize: type.label,
         letterSpacing: 0.8,
         color: colour.muted,
-        marginBottom: 3,
+        marginBottom: space.sm,
       }}
     >
       {children.toUpperCase()}
@@ -228,11 +228,11 @@ function Card({
   return (
     <View
       style={{
-        borderWidth: 0.8,
+        borderWidth: space.edgeWidth,
         borderColor: colour.line,
-        borderRadius: 4,
-        padding: compact ? 8 : 10,
-        marginBottom: compact ? 8 : 12,
+        borderRadius: space.md,
+        padding: compact ? space.lg : space.xl,
+        marginBottom: compact ? space.lg : space.xxl,
       }}
     >
       <View
@@ -240,7 +240,7 @@ function Card({
           flexDirection: "row",
           alignItems: "center",
           justifyContent: "space-between",
-          borderBottomWidth: 0.8,
+          borderBottomWidth: space.edgeWidth,
           borderBottomColor: colour.ink,
           paddingBottom: 3,
           marginBottom: 5,
@@ -249,7 +249,7 @@ function Card({
         <Text
           style={{
             fontFamily: font.bold,
-            fontSize: compact ? 11 : 13,
+            fontSize: compact ? type.heading : type.headingLarge,
             color: colour.ink,
             flex: 1,
             paddingRight: 6,
@@ -257,14 +257,16 @@ function Card({
         >
           {index}. {heading}
         </Text>
-        <Text style={{ fontFamily: font.bold, fontSize: 7.5, color: colour.accent }}>
+        <Text style={{ fontFamily: font.bold, fontSize: type.subtitle, color: colour.accent }}>
           {durationsOf(group)}
         </Text>
       </View>
 
-      <View style={{ flexDirection: "row", alignItems: "center", gap: 5, marginBottom: 5 }}>
+      <View
+        style={{ flexDirection: "row", alignItems: "center", gap: space.base, marginBottom: 5 }}
+      >
         <SoftenerBadge on={item.fabricSoftener} />
-        <Text style={{ fontFamily: font.bold, fontSize: 8, color: colour.ink }}>
+        <Text style={{ fontFamily: font.bold, fontSize: type.strong, color: colour.ink }}>
           {item.program}{" "}
           {/^\d+$/.test(item.temperature) ? `${item.temperature} °C` : item.temperature} ·{" "}
           {item.spin === "0" ? "no spin" : `${item.spin} rpm`}
@@ -325,11 +327,11 @@ function IronCard({
   return (
     <View
       style={{
-        borderWidth: 0.8,
+        borderWidth: space.edgeWidth,
         borderColor: colour.line,
-        borderRadius: 4,
-        padding: compact ? 8 : 10,
-        marginBottom: compact ? 8 : 12,
+        borderRadius: space.md,
+        padding: compact ? space.lg : space.xl,
+        marginBottom: compact ? space.lg : space.xxl,
       }}
     >
       <View
@@ -337,7 +339,7 @@ function IronCard({
           flexDirection: "row",
           alignItems: "center",
           justifyContent: "space-between",
-          borderBottomWidth: 0.8,
+          borderBottomWidth: space.edgeWidth,
           borderBottomColor: colour.ink,
           paddingBottom: 3,
           marginBottom: 5,
@@ -346,7 +348,7 @@ function IronCard({
         <Text
           style={{
             fontFamily: font.bold,
-            fontSize: compact ? 11 : 13,
+            fontSize: compact ? type.heading : type.headingLarge,
             color: colour.ink,
             flex: 1,
             paddingRight: 6,
@@ -354,7 +356,7 @@ function IronCard({
         >
           {index}. {setting ? `${setting.label} — ${setting.detail}` : "Do not iron"}
         </Text>
-        <Text style={{ fontFamily: font.sans, fontSize: 7, color: colour.muted }}>
+        <Text style={{ fontFamily: font.sans, fontSize: type.base, color: colour.muted }}>
           {group.length} {group.length === 1 ? "pile" : "piles"}
         </Text>
       </View>
@@ -364,19 +366,19 @@ function IronCard({
           flexDirection: "row",
           alignItems: "center",
           backgroundColor: colour.panel,
-          borderWidth: 0.6,
+          borderWidth: space.ruleWidth,
           borderColor: colour.hairline,
-          borderRadius: 3,
-          padding: 6,
-          gap: 8,
+          borderRadius: space.sm,
+          padding: space.base2,
+          gap: space.lg,
         }}
       >
         <IronDial setting={item.ironSetting} off={!item.ironing} size={compact ? 54 : 62} />
         <View style={{ flex: 1 }}>
-          <Text style={{ fontFamily: font.bold, fontSize: 8.5, color: colour.ink }}>
+          <Text style={{ fontFamily: font.bold, fontSize: type.emphasis, color: colour.ink }}>
             {setting ? `Thermostat on ${setting.label}` : "Leave the iron off"}
           </Text>
-          <Text style={{ fontFamily: font.sans, fontSize: 6.6, color: colour.muted }}>
+          <Text style={{ fontFamily: font.sans, fontSize: type.muted, color: colour.muted }}>
             {setting
               ? setting.steam
                 ? "inside the steam zone"
@@ -400,7 +402,7 @@ function IronCard({
               <Text
                 style={{
                   fontFamily: font.bold,
-                  fontSize: 7.4,
+                  fontSize: type.note,
                   lineHeight: 1.35,
                   color: colour.ink,
                   width: compact ? 84 : 122,
@@ -412,7 +414,7 @@ function IronCard({
               <Text
                 style={{
                   fontFamily: font.sans,
-                  fontSize: 7.4,
+                  fontSize: type.note,
                   lineHeight: 1.35,
                   color: colour.body,
                   flex: 1,
@@ -433,13 +435,20 @@ function Masthead({ subtitle }: { subtitle: string }) {
 
   return (
     <View style={{ marginBottom: 10 }}>
-      <Text style={{ fontFamily: font.bold, fontSize: 15, color: colour.ink }}>
+      <Text style={{ fontFamily: font.bold, fontSize: type.title, color: colour.ink }}>
         Washing instructions
       </Text>
-      <Text style={{ fontFamily: font.sans, fontSize: 7.5, color: colour.muted, marginTop: 1.5 }}>
+      <Text
+        style={{
+          fontFamily: font.sans,
+          fontSize: type.subtitle,
+          color: colour.muted,
+          marginTop: 1.5,
+        }}
+      >
         {subtitle}
       </Text>
-      <Text style={{ fontFamily: font.sans, fontSize: 7.5, color: colour.muted }}>
+      <Text style={{ fontFamily: font.sans, fontSize: type.subtitle, color: colour.muted }}>
         {washer.name}, {washer.capacity} · {iron.name}
       </Text>
     </View>
@@ -459,11 +468,11 @@ function Loads({ items }: { items: ResolvedInstruction[] }) {
       <SectionHeading>Loads — one line, one wash</SectionHeading>
       <View
         style={{
-          borderWidth: 0.6,
+          borderWidth: space.ruleWidth,
           borderColor: colour.hairline,
-          borderRadius: 3,
-          paddingVertical: 2,
-          paddingHorizontal: 6,
+          borderRadius: space.sm,
+          paddingVertical: space.xs,
+          paddingHorizontal: space.base2,
         }}
       >
         {groups.map((group) => {
@@ -482,7 +491,7 @@ function Loads({ items }: { items: ResolvedInstruction[] }) {
               <Text
                 style={{
                   fontFamily: font.bold,
-                  fontSize: 6.6,
+                  fontSize: type.muted,
                   color: colour.accent,
                   // Wide enough for a longer real programme name ("Allergy
                   // Plus Extra") to wrap onto two lines rather than crowd
@@ -495,7 +504,7 @@ function Loads({ items }: { items: ResolvedInstruction[] }) {
               <Text
                 style={{
                   fontFamily: group.length > 1 ? font.bold : font.sans,
-                  fontSize: 7.2,
+                  fontSize: type.prose,
                   color: group.length > 1 ? colour.ink : colour.body,
                   flex: 1,
                 }}
@@ -507,7 +516,7 @@ function Loads({ items }: { items: ResolvedInstruction[] }) {
               <Text
                 style={{
                   fontFamily: font.sans,
-                  fontSize: 6.6,
+                  fontSize: type.muted,
                   color: colour.muted,
                   width: 42,
                   textAlign: "right",
@@ -523,6 +532,15 @@ function Loads({ items }: { items: ResolvedInstruction[] }) {
   );
 }
 
+/**
+ * The dial-explanation box's fixed size. Stated rather than inferred (an Svg
+ * contributes nothing to the layout, so without it the grey panel shrinks to
+ * the caption and the dial spills out of the top) and shared with the dial
+ * drawn inside it, so the two can't drift apart.
+ */
+const LEGEND_DIAL_SIZE = 54;
+const LEGEND_BOX_HEIGHT = 66;
+
 /** How to read the dial drawings, printed once per document. */
 function Legend({ last = false, variant = "full" }: { last?: boolean; variant?: Variant }) {
   const machine = useMachine();
@@ -537,28 +555,23 @@ function Legend({ last = false, variant = "full" }: { last?: boolean; variant?: 
       wrap={false}
       style={{
         flexDirection: "row",
-        gap: 10,
+        gap: space.xl,
         backgroundColor: colour.panel,
-        borderRadius: 3,
-        padding: 8,
-        marginBottom: last ? 0 : 10,
+        borderRadius: space.sm,
+        padding: space.lg,
+        marginBottom: last ? 0 : space.xl,
       }}
     >
-      {/*
-        The height is stated rather than inferred: an Svg contributes nothing
-        to the layout, so without it the grey panel shrinks to the caption and
-        the dial spills out of the top.
-      */}
-      <View style={{ width: 54, height: 66, alignItems: "center" }}>
+      <View style={{ width: LEGEND_DIAL_SIZE, height: LEGEND_BOX_HEIGHT, alignItems: "center" }}>
         {variant === "iron" ? (
-          <IronDial setting={hottest} size={54} />
+          <IronDial setting={hottest} size={LEGEND_DIAL_SIZE} />
         ) : (
-          <ProgramDial program={example} size={54} />
+          <ProgramDial program={example} size={LEGEND_DIAL_SIZE} />
         )}
         <Text
           style={{
             fontFamily: font.sans,
-            fontSize: 5.5,
+            fontSize: type.micro,
             color: colour.muted,
             marginTop: 2,
           }}
@@ -570,7 +583,7 @@ function Legend({ last = false, variant = "full" }: { last?: boolean; variant?: 
         <Text
           style={{
             fontFamily: font.sans,
-            fontSize: 7,
+            fontSize: type.base,
             color: colour.body,
             lineHeight: 1.4,
             paddingRight: 2,
@@ -628,7 +641,7 @@ export function PhoneDocument({
       <Document title={`${sheet[variant].title} — phone`} {...documentMeta(machine, variant)}>
         <Page
           size={{ width: PHONE_WIDTH, height }}
-          style={{ padding: 12, backgroundColor: "#fff" }}
+          style={{ padding: space.xxl, backgroundColor: colour.paper }}
         >
           <Masthead subtitle={sheet[variant].phone} />
           {variant !== "iron" && <Loads items={items} />}
@@ -655,7 +668,7 @@ export function PhoneDocument({
             <Text
               style={{
                 fontFamily: font.oblique,
-                fontSize: 6,
+                fontSize: type.label,
                 color: colour.faint,
                 marginTop: 4,
                 textAlign: "center",
@@ -736,12 +749,12 @@ function SummaryTable({
   const columns = summaryColumns(machine, variant);
 
   return (
-    <View style={{ marginBottom: 14 }}>
+    <View style={{ marginBottom: space.xxxl }}>
       <SectionHeading>{variant === "iron" ? "On the board" : "At a glance"}</SectionHeading>
       <View
         style={{
           flexDirection: "row",
-          borderBottomWidth: 0.8,
+          borderBottomWidth: space.edgeWidth,
           borderBottomColor: colour.ink,
           paddingBottom: 2.5,
         }}
@@ -749,7 +762,7 @@ function SummaryTable({
         <Text
           style={{
             fontFamily: font.bold,
-            fontSize: densityFont(6.5, density),
+            fontSize: densityFont(type.footnote, density),
             width: 14 * density,
             color: colour.ink,
           }}
@@ -761,7 +774,7 @@ function SummaryTable({
             key={column.label}
             style={{
               fontFamily: font.bold,
-              fontSize: densityFont(6.5, density),
+              fontSize: densityFont(type.footnote, density),
               width: column.width * density,
               color: colour.ink,
             }}
@@ -776,15 +789,15 @@ function SummaryTable({
           style={{
             flexDirection: "row",
             paddingVertical: 2.6 * density,
-            borderBottomWidth: 0.4,
+            borderBottomWidth: space.hairlineWidth,
             borderBottomColor: colour.hairline,
-            backgroundColor: index % 2 === 1 ? colour.panel : "#ffffff",
+            backgroundColor: index % 2 === 1 ? colour.panel : colour.paper,
           }}
         >
           <Text
             style={{
               fontFamily: font.sans,
-              fontSize: densityFont(6.8, density),
+              fontSize: densityFont(type.cell, density),
               width: 14 * density,
               color: colour.muted,
             }}
@@ -796,7 +809,7 @@ function SummaryTable({
               key={column.label}
               style={{
                 fontFamily: position === 0 ? font.bold : font.sans,
-                fontSize: densityFont(6.8, density),
+                fontSize: densityFont(type.cell, density),
                 width: column.width * density,
                 color: position === 0 ? colour.ink : colour.body,
                 paddingRight: 4,
@@ -859,7 +872,7 @@ function MixMatrix({ items, density }: { items: ResolvedInstruction[]; density: 
                 key={column.clothingType}
                 style={{
                   fontFamily: font.bold,
-                  fontSize: densityFont(6, density),
+                  fontSize: densityFont(type.label, density),
                   width: cell,
                   textAlign: "center",
                   color: colour.muted,
@@ -874,7 +887,7 @@ function MixMatrix({ items, density }: { items: ResolvedInstruction[]; density: 
               <Text
                 style={{
                   fontFamily: font.sans,
-                  fontSize: densityFont(6.6, density),
+                  fontSize: densityFont(type.muted, density),
                   width: labelWidth,
                   color: colour.ink,
                   paddingVertical: 2.2 * density,
@@ -886,14 +899,14 @@ function MixMatrix({ items, density }: { items: ResolvedInstruction[]; density: 
               {block.map(({ column, columnIndex }) => {
                 const self = rowIndex === columnIndex;
                 const blocker = self ? null : mixBlocker(row, column);
-                const background = self ? colour.line : blocker ? "#ffffff" : colour.yesSoft;
+                const background = self ? colour.line : blocker ? colour.paper : colour.yesSoft;
                 return (
                   <View
                     key={column.clothingType}
                     style={{
                       width: cell,
                       backgroundColor: background,
-                      borderWidth: 0.4,
+                      borderWidth: space.hairlineWidth,
                       borderColor: colour.hairline,
                       alignItems: "center",
                       justifyContent: "center",
@@ -903,7 +916,7 @@ function MixMatrix({ items, density }: { items: ResolvedInstruction[]; density: 
                     <Text
                       style={{
                         fontFamily: blocker ? font.bold : font.sans,
-                        fontSize: densityFont(6, density),
+                        fontSize: densityFont(type.label, density),
                         // Inverted from how this used to read: a blocker is
                         // the thing that ruins a garment, so it gets the
                         // loud ink. "OK" already has the soft green fill
@@ -921,12 +934,15 @@ function MixMatrix({ items, density }: { items: ResolvedInstruction[]; density: 
           ))}
         </View>
       ))}
-      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10, marginTop: 5 }}>
-        <Text style={{ fontFamily: font.sans, fontSize: 6.2, color: colour.body }}>
+      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: space.xl, marginTop: 5 }}>
+        <Text style={{ fontFamily: font.sans, fontSize: type.small, color: colour.body }}>
           OK — same drum
         </Text>
         {[...used].map((blocker) => (
-          <Text key={blocker} style={{ fontFamily: font.sans, fontSize: 6.2, color: colour.body }}>
+          <Text
+            key={blocker}
+            style={{ fontFamily: font.sans, fontSize: type.small, color: colour.body }}
+          >
             <Text style={{ fontFamily: font.bold, color: colour.no }}>{blockerCode[blocker]}</Text>
             {" — "}
             {blockerLegend[blocker].toLowerCase()}
@@ -960,7 +976,10 @@ function ReferenceSheet({
   const rows = variant === "iron" ? ironGroups(items, ironSettingKeys(machine)).flat() : items;
 
   return (
-    <Page size={[A4.width, A4.height]} style={{ padding: PAGE_MARGIN, backgroundColor: "#fff" }}>
+    <Page
+      size={[A4.width, A4.height]}
+      style={{ padding: PAGE_MARGIN, backgroundColor: colour.paper }}
+    >
       <RunningHeader machine={machine} variant={variant} />
       <Masthead subtitle={sheet[variant].print} />
       {variant !== "iron" && <Loads items={items} />}
@@ -1052,7 +1071,7 @@ export function PrintDocument({
       */}
         <Page
           size={[A4.width, A4.height]}
-          style={{ padding: PAGE_MARGIN, backgroundColor: "#fff" }}
+          style={{ padding: PAGE_MARGIN, backgroundColor: colour.paper }}
         >
           <RunningHeader machine={machine} variant={variant} />
           {groups.map((group, index) =>
