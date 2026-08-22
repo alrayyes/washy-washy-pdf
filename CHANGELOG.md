@@ -1,3 +1,9 @@
+## [1.0.2](https://github.com/alrayyes/washy-washy-pdf/compare/v1.0.1...v1.0.2) (2026-08-22)
+
+### Bug Fixes
+
+* enforce the reference table's column-width budget ([cd2075d](https://github.com/alrayyes/washy-washy-pdf/commit/cd2075d5bbb9216f1a7556fcb4f28141847540f8)), closes [#15](https://github.com/alrayyes/washy-washy-pdf/issues/15)
+
 ## [1.0.1](https://github.com/alrayyes/washy-washy-pdf/compare/v1.0.0...v1.0.1) (2026-08-22)
 
 ### Bug Fixes
