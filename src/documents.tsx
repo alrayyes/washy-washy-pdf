@@ -179,7 +179,8 @@ function Card({
       <View style={{ flexDirection: "row", alignItems: "center", gap: 5, marginBottom: 5 }}>
         <SoftenerBadge on={item.fabricSoftener} />
         <Text style={{ fontFamily: font.bold, fontSize: 8, color: colour.ink }}>
-          {item.program} {item.temperature === "koud" ? "koud" : `${item.temperature} °C`} ·{" "}
+          {item.program}{" "}
+          {/^\d+$/.test(item.temperature) ? `${item.temperature} °C` : item.temperature} ·{" "}
           {item.spin === "0" ? "no spin" : `${item.spin} rpm`}
         </Text>
       </View>
