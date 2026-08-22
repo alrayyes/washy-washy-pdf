@@ -113,6 +113,70 @@ const sheet: Record<Variant, { title: string; phone: string; print: string }> = 
   },
 };
 
+/**
+ * PDF metadata every document here shares — `title` stays whatever each
+ * `<Document>` already sets, since it's the one field that differs (phone,
+ * reference, print).
+ */
+function documentMeta(machine: Machine, variant: Variant) {
+  return {
+    author: "washy-washy",
+    subject: `${machine.washer.name} — ${sheet[variant].title}`,
+    creator: "@washy-washy/pdf",
+    language: "en-GB",
+  };
+}
+
+/**
+ * Names the sheet and machine on every page after the first, so a page
+ * pinned up on its own — or found loose, out of order — still says what it
+ * is. The first page keeps `Masthead` instead; `pageNumber` is the running
+ * count across the whole document, not just this `<Page>`, so a single
+ * check here is enough regardless of which physical page happens to be
+ * first.
+ */
+function RunningHeader({ machine, variant }: { machine: Machine; variant: Variant }) {
+  return (
+    <Text
+      fixed
+      render={({ pageNumber }) =>
+        pageNumber === 1 ? "" : `${sheet[variant].title} · ${machine.washer.name}`
+      }
+      style={{
+        position: "absolute",
+        top: 14,
+        left: PAGE_MARGIN,
+        right: PAGE_MARGIN,
+        fontFamily: font.sans,
+        fontSize: 7,
+        color: colour.muted,
+      }}
+    />
+  );
+}
+
+/** Omitted on a single-page render — "1 of 1" on its own sheet is noise. */
+function PageFooter() {
+  return (
+    <Text
+      fixed
+      render={({ pageNumber, totalPages }) =>
+        totalPages > 1 ? `Page ${pageNumber} of ${totalPages}` : ""
+      }
+      style={{
+        position: "absolute",
+        bottom: 14,
+        left: PAGE_MARGIN,
+        right: PAGE_MARGIN,
+        textAlign: "right",
+        fontFamily: font.sans,
+        fontSize: 6.5,
+        color: colour.faint,
+      }}
+    />
+  );
+}
+
 function SectionHeading({ children }: { children: string }) {
   return (
     <Text
@@ -559,7 +623,7 @@ export function PhoneDocument({
 
   return (
     <ApplianceContext.Provider value={machine}>
-      <Document title={`${sheet[variant].title} — phone`} author="washy-washy">
+      <Document title={`${sheet[variant].title} — phone`} {...documentMeta(machine, variant)}>
         <Page
           size={{ width: PHONE_WIDTH, height }}
           style={{ padding: 12, backgroundColor: "#fff" }}
@@ -871,6 +935,7 @@ function ReferenceSheet({
 
   return (
     <Page size={[A4.width, A4.height]} style={{ padding: PAGE_MARGIN, backgroundColor: "#fff" }}>
+      <RunningHeader machine={machine} variant={variant} />
       <Masthead subtitle={sheet[variant].print} />
       {variant !== "iron" && <Loads items={items} />}
       <SummaryTable items={rows} density={density} variant={variant} />
@@ -884,6 +949,7 @@ function ReferenceSheet({
       <View style={{ marginTop: 12 }}>
         <Legend last variant={variant} />
       </View>
+      <PageFooter />
     </Page>
   );
 }
@@ -914,7 +980,7 @@ export function ReferenceDocument({
 }) {
   return (
     <ApplianceContext.Provider value={machine}>
-      <Document title={`${sheet[variant].title} — reference`} author="washy-washy">
+      <Document title={`${sheet[variant].title} — reference`} {...documentMeta(machine, variant)}>
         <ReferenceSheet items={items} density={density} variant={variant} />
       </Document>
     </ApplianceContext.Provider>
@@ -949,7 +1015,7 @@ export function PrintDocument({
 
   return (
     <ApplianceContext.Provider value={machine}>
-      <Document title={`${sheet[variant].title} — print`} author="washy-washy">
+      <Document title={`${sheet[variant].title} — print`} {...documentMeta(machine, variant)}>
         <ReferenceSheet items={items} density={density} variant={variant} />
         {/*
         The cards flow onto as many A4 sheets as they need. Each card is
@@ -960,6 +1026,7 @@ export function PrintDocument({
           size={[A4.width, A4.height]}
           style={{ padding: PAGE_MARGIN, backgroundColor: "#fff" }}
         >
+          <RunningHeader machine={machine} variant={variant} />
           {groups.map((group, index) =>
             variant === "iron" ? (
               <IronCard
@@ -976,6 +1043,7 @@ export function PrintDocument({
               />
             ),
           )}
+          <PageFooter />
         </Page>
       </Document>
     </ApplianceContext.Provider>
