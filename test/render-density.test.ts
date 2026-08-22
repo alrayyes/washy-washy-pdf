@@ -39,7 +39,7 @@ describe("renderPrint at extreme density", () => {
   test("flows onto more pages rather than throwing when even the floor doesn't fit", async () => {
     const items = resolve(Array.from({ length: 50 }, (_, index) => pile(index + 1)));
 
-    const bytes = await renderPrint(items, MACHINE);
+    const { pdf: bytes } = await renderPrint(items, MACHINE);
     const { PDFDocument } = await import("pdf-lib");
     const doc = await PDFDocument.load(bytes);
 

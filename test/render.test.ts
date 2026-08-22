@@ -15,7 +15,7 @@ describe("renderPrint", () => {
     const items = resolve(Array.from({ length: 24 }, (_, index) => pile(index + 1)));
 
     expect(
-      (await inkPerPage(await renderPrint(items, MACHINE))).filter((ink) => ink < 1000),
+      (await inkPerPage((await renderPrint(items, MACHINE)).pdf)).filter((ink) => ink < 1000),
     ).toEqual([]);
   }, 60_000);
 });

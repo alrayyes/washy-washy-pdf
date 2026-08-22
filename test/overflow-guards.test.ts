@@ -29,7 +29,7 @@ describe("oversized card", () => {
     console.warn = (...args: unknown[]) => warnings.push(args);
     let bytes: Uint8Array;
     try {
-      bytes = await renderPrint(items, MACHINE);
+      ({ pdf: bytes } = await renderPrint(items, MACHINE));
     } finally {
       console.warn = originalWarn;
     }
@@ -74,7 +74,7 @@ describe("mix matrix at high pile counts", () => {
 describe("fixed-width labels grow for longer values", () => {
   test("a longer programme name and duration are fully present in the Loads table", async () => {
     const items = resolve([pile(1, { program: "Allergy Plus Extra", duration: "~12:30" })]);
-    const text = (await pageText(await renderPrint(items, MACHINE))).join("\n");
+    const text = (await pageText((await renderPrint(items, MACHINE)).pdf)).join("\n");
 
     expect(text).toContain("Allergy Plus Extra");
     expect(text).toContain("~12:30");
@@ -89,7 +89,7 @@ describe("bundled example stays visually unchanged", () => {
     const items = resolve(Array.from({ length: 24 }, (_, index) => pile(index + 1)));
 
     expect(
-      (await inkPerPage(await renderPrint(items, MACHINE))).filter((ink) => ink < 1000),
+      (await inkPerPage((await renderPrint(items, MACHINE)).pdf)).filter((ink) => ink < 1000),
     ).toEqual([]);
   }, 60_000);
 });
