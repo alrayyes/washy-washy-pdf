@@ -683,7 +683,7 @@ export function PhoneDocument({
   );
 }
 
-interface Column {
+export interface Column {
   label: string;
   width: number;
   value: (item: ResolvedInstruction) => string;
