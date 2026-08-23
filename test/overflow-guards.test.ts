@@ -137,6 +137,42 @@ describe("card page overflow", () => {
   }, 30_000);
 });
 
+describe("reference-citation footnote overflow", () => {
+  // #51: filed against washy-washy-cli's own chart, where the "Do not
+  // iron" card's last row carried a citation. The card body already
+  // filled the remaining page edge to edge, so the citation — a small,
+  // distinct block trailing the notes list — had nowhere to go but a
+  // fresh, near-blank page of its own. Same defect class as #17/#34/#48,
+  // one component newer than the fixes those covered.
+  test("a citation on the last pile of an ironing card doesn't spill alone onto a near-blank page", async () => {
+    const note = (n: number) =>
+      `Do not iron item ${n} — heat-sensitive print, plastic trims, and a synthetic blend that scorches easily under any heat at all, so keep it well away from the board.`;
+    const items = resolve([
+      ...Array.from({ length: 30 }, (_, i) =>
+        pile(i + 1, {
+          clothingType: `Synthetic garment number ${i + 1} with a long descriptive name`,
+          ironing: false,
+          ironingNotes: note(i + 1),
+        }),
+      ),
+      pile(31, {
+        clothingType: "Synthetic activewear",
+        ironing: false,
+        ironingNotes:
+          "Do not iron — heat-sensitive print, plastic trims, and a synthetic blend that scorches easily under any heat at all.",
+        referenceName: "Dirty Labs",
+        referenceLink: "https://example.com/dirty-labs-synthetic",
+      }),
+    ]);
+
+    const { pdf: bytes } = await renderPrint(items, MACHINE, "iron");
+    expect((await inkPerPage(bytes)).filter((ink) => ink < 1000)).toEqual([]);
+
+    const doc = await PDFDocument.load(bytes);
+    expect(doc.getPageCount()).toBeGreaterThan(1);
+  }, 30_000);
+});
+
 describe("bundled example stays visually unchanged", () => {
   // The existing 24-pile stress fixture, unaffected by any of the three
   // guards above — it never reaches the card-height, matrix-cell, or

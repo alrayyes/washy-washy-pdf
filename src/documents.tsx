@@ -212,6 +212,24 @@ function SectionHeading({ children }: { children: string }) {
 const CARD_TAIL_MIN_PRESENCE_AHEAD = 30;
 
 /**
+ * How much of a following `ReferenceCredit` a card's last real row asks to
+ * keep with it, when there's a citation to protect (#51).
+ *
+ * `CARD_TAIL_MIN_PRESENCE_AHEAD` guards the closing chrome once a card's
+ * body is already mid-page, but `ReferenceCredit` is a small, distinct
+ * element sitting after a list this package doesn't control the length
+ * of (piles named individually, `notes`/ironing-notes rows). When that
+ * list alone already fills the remaining page, `ReferenceCredit` has no
+ * minimum of its own to fall back on and lands alone on the next page —
+ * the same near-blank-fragment defect #34 fixed for a card's own closing
+ * border, one component newer. react-pdf caps `minPresenceAhead` at
+ * however far the very next sibling actually extends, so this only ever
+ * asks for as much room as the citation genuinely needs, however large
+ * the number here is.
+ */
+const REFERENCE_CREDIT_MIN_PRESENCE_AHEAD = 100;
+
+/**
  * Who backs up a care instruction that isn't obvious from the garment
  * itself — "the label says 40°" doesn't need one, "the manufacturer says
  * wash these alone" might. `null` when nothing in the group cites anyone,
@@ -462,14 +480,20 @@ function IronCard({
 
       <View style={{ marginTop: 4 }} minPresenceAhead={CARD_TAIL_MIN_PRESENCE_AHEAD}>
         <SectionHeading>{setting ? "How" : "Never these"}</SectionHeading>
-        {group.map((member) => {
+        {group.map((member, memberIndex) => {
           // On the no-iron card the heading has said it already, so only a
           // reason earns the second column. Elsewhere the line is the point.
           const note = member.ironingNotes;
+          // minPresenceAhead protects what follows the element it's set on,
+          // not the element itself — so the row asking for room is the one
+          // *before* the row ReferenceCredit actually trails.
+          const protectCredit =
+            memberIndex === group.length - 2 && group.some((item) => item.referenceName !== "");
           return (
             <View
               key={member.clothingType}
               style={{ flexDirection: "row", alignItems: "flex-start", marginTop: 1.5 }}
+              {...(protectCredit ? { minPresenceAhead: REFERENCE_CREDIT_MIN_PRESENCE_AHEAD } : {})}
             >
               <Text
                 style={{
