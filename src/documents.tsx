@@ -1,4 +1,4 @@
-import { Document, Page, Text, View } from "@react-pdf/renderer";
+import { Document, Link, Page, Text, View } from "@react-pdf/renderer";
 import {
   type Blocker,
   blockerCode,
@@ -197,6 +197,56 @@ function SectionHeading({ children }: { children: string }) {
 }
 
 /**
+ * Who backs up a care instruction that isn't obvious from the garment
+ * itself — "the label says 40°" doesn't need one, "the manufacturer says
+ * wash these alone" might. `null` when nothing in the group cites anyone,
+ * which is the common case and changes nothing about the card.
+ *
+ * A link is meaningless on paper, so it only renders where the medium can
+ * act on it — `Link` produces a PDF annotation, invisible on a print but
+ * live on a screen.
+ */
+function ReferenceCredit({ items }: { items: ResolvedInstruction[] }) {
+  const cited = items.filter((item) => item.referenceName !== "");
+  if (cited.length === 0) return null;
+
+  const style = {
+    fontFamily: font.oblique,
+    fontSize: type.micro,
+    color: colour.faint,
+    marginTop: space.xs,
+  } as const;
+
+  const credit = (item: ResolvedInstruction) =>
+    item.referenceLink === "" ? (
+      item.referenceName
+    ) : (
+      <Link src={item.referenceLink} style={{ color: colour.faint }}>
+        {item.referenceName}
+      </Link>
+    );
+
+  const sameForAll = cited.every(
+    (item) =>
+      item.referenceName === cited[0]?.referenceName &&
+      item.referenceLink === cited[0]?.referenceLink,
+  );
+  if (sameForAll) {
+    return <Text style={style}>— {credit(cited[0] as ResolvedInstruction)}</Text>;
+  }
+
+  return (
+    <View style={{ marginTop: space.xs }}>
+      {cited.map((item) => (
+        <Text key={item.clothingType} style={style}>
+          {item.clothingType}: {credit(item)}
+        </Text>
+      ))}
+    </View>
+  );
+}
+
+/**
  * One card, top to bottom: what it is, how the machine goes, iron, dry.
  *
  * `group` is usually a single pile. Where several piles are set up identically
@@ -302,6 +352,7 @@ function Card({
         emphasis
       />
       <SplitField label="Notes" items={group} pick={(member) => member.notes} />
+      <ReferenceCredit items={group} />
     </View>
   );
 }
@@ -429,6 +480,7 @@ function IronCard({
           );
         })}
       </View>
+      <ReferenceCredit items={group} />
     </View>
   );
 }
