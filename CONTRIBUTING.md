@@ -102,6 +102,19 @@ things again and why the message check runs a second time over the whole
 range of a pull request. These messages decide the version a release tool
 picks, so they are worth a gate rather than only a reminder.
 
+## Secrets
+
+Two repository secrets, both under Settings → Secrets and variables →
+Actions — no application-level environment variables exist; this package
+takes every input as a function argument (`items`, `machine`, `variant`).
+
+- `CODECOV_TOKEN` — the `check` workflow uploads coverage with
+  `fail_ci_if_error: true`, so a pull request from a fork without this
+  secret (or a repo where it was never set) fails the `check` job on the
+  upload step rather than the tests themselves.
+- `RELEASE_TOKEN` — see [Releasing](#releasing) below for what it needs and
+  why the default job token isn't enough.
+
 ## Gotchas
 
 - Only Helvetica is embedded, so the PDFs can only render WinAnsi characters.
@@ -115,6 +128,9 @@ picks, so they are worth a gate rather than only a reminder.
 - The phone page's height is _measured_, not chosen: `renderPhone` renders the
   document repeatedly and bisects until it fits on one page with under 8 pt to
   spare. That is why the return value reports a number of layout passes.
+  `renderCard` sizes a single card's sheet the same way, sharing the same
+  `fitToOnePage` bisection in `src/render.ts` rather than each promising its
+  own tolerance.
 - The reference sheet is measured the same way, in the other direction. Its
   page size is fixed at A4, so what gives is the type: `renderPrint` renders
   the sheet on its own and bisects the size of the two tables down until it

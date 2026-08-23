@@ -48,7 +48,7 @@ jobs:
             echo "present=true" >> "$GITHUB_OUTPUT"
           else
             echo "present=false" >> "$GITHUB_OUTPUT"
-            echo "::notice::RELEASE_TOKEN is not set, so nothing was released. See README.md."
+            echo "::notice::RELEASE_TOKEN is not set, so nothing was released. See CONTRIBUTING.md#releasing."
           fi
         env:
           RELEASE_TOKEN: ${{ secrets.RELEASE_TOKEN }}
