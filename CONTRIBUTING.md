@@ -7,6 +7,49 @@ This package draws the PDFs `washy-washy-cli` generates, and the web app
 previews — the `@react-pdf/renderer` components and the layout-fitting logic,
 split out so either can depend on just the rendering layer.
 
+## Layout
+
+Everything that ships is under `src/`, one concern per file:
+
+- `render.ts` — the public `render*` functions: sanitize, measure, bisect,
+  return bytes. The only place that calls `sanitizeInstructions` or asks
+  `react-pdf` for a page count.
+- `documents.tsx` — the `<Document>`/`<Page>` trees themselves: `Card`,
+  `IronCard`, `Loads`, `Legend`, and the four exported `*Document` wrappers
+  around them.
+- `components.tsx` — the smaller pieces `documents.tsx` composes: the dial
+  drawings, chips, and panels.
+- `appliances.ts` — `ApplianceContext`, the one piece of React state in the
+  package: the `Machine` a tree is rendering against, handed down instead of
+  imported, so two charts for two machines can render in the same process.
+- `theme.ts` — every colour, font size, and spacing value, named for where it
+  reads rather than derived from a formula.
+- `sanitize.ts` — the WinAnsi transliteration table `render.ts` runs every
+  chart through; see [Gotchas](#gotchas).
+
+Outside `src/`:
+
+- `test/` is organized by behaviour rather than one file per `src/` module —
+  `render-phone.test.ts`, `render-card.test.ts`, and `overflow-guards.test.ts`
+  sit alongside `documents.test.ts` and `theme.test.ts`. `fixtures.ts` is a
+  self-contained `Machine` and pile builder (no CLI, no data file) and
+  `pdf-text.ts` scrapes drawn text back out of a rendered PDF's content
+  stream for assertions.
+- `scripts/` are dev-only entry points, not part of what ships:
+  `example-chart.ts` is the chart every example and screenshot renders from,
+  `examples.ts` and `screenshots.ts` regenerate `docs/`, and
+  `install-vale.ts`/`vale-release.ts` fetch and pin the Vale binary.
+- `docs/` holds the six generated example PDFs and their PNG screenshots the
+  README links — output, not prose documentation. Regenerate with
+  `bun run examples` then `bun run screenshots`; don't hand-edit them.
+- `styles/` is Vale's synced style packages plus `config/vocabularies/House`,
+  this repo's own accepted-terms list.
+
+There's no separate state-management layer to learn: every `render*` call is
+a pure function of its arguments in, PDF bytes out, and `ApplianceContext`
+above is the only state that exists, scoped to a single render pass rather
+than the module.
+
 ## Getting set up
 
 ```sh
