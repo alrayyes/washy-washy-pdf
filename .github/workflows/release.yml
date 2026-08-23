@@ -81,6 +81,12 @@ jobs:
       - run: bun install --frozen-lockfile
         if: steps.token.outputs.present == 'true'
 
+      # The exec plugin below re-shoots docs/*.png from docs/*.pdf so the
+      # README's screenshots never fall a release behind the code that draws
+      # them — pdftoppm is poppler, and ubuntu-latest doesn't carry it.
+      - run: sudo apt-get update && sudo apt-get install -y poppler-utils
+        if: steps.token.outputs.present == 'true'
+
       - run: ./node_modules/.bin/semantic-release
         if: steps.token.outputs.present == 'true'
         env:
