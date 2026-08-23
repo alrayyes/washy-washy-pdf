@@ -81,9 +81,14 @@ jobs:
       - run: bun install --frozen-lockfile
         if: steps.token.outputs.present == 'true'
 
-      # The exec plugin below re-shoots docs/*.png from docs/*.pdf so the
-      # README's screenshots never fall a release behind the code that draws
-      # them — pdftoppm is poppler, and ubuntu-latest doesn't carry it.
+      # The exec plugin below re-shoots docs/*.png from the docs/*.pdf already
+      # on main — not the PDFs themselves. test/screenshots.test.ts already
+      # fails a pull request whose PDFs and PNGs have drifted, so the PDFs
+      # going into this job are already current; regenerating them here would
+      # only add churn, since @react-pdf/renderer stamps every render with a
+      # fresh CreationDate and /ID even when nothing about the drawing
+      # changed. Re-shooting needs pdftoppm — poppler — which ubuntu-latest
+      # doesn't carry.
       - run: sudo apt-get update && sudo apt-get install -y poppler-utils
         if: steps.token.outputs.present == 'true'
 
