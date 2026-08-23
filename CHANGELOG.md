@@ -1,3 +1,9 @@
+## [2.3.3](https://github.com/alrayyes/washy-washy-pdf/compare/v2.3.2...v2.3.3) (2026-08-23)
+
+### Bug Fixes
+
+* sanitizeInstructions never cleans referenceName/referenceLink ([#52](https://github.com/alrayyes/washy-washy-pdf/issues/52)) ([2012ae7](https://github.com/alrayyes/washy-washy-pdf/commit/2012ae7904cacbe0db2bd96d802acce046e9daa2)), closes [#30](https://github.com/alrayyes/washy-washy-pdf/issues/30) [#16](https://github.com/alrayyes/washy-washy-pdf/issues/16) [#49](https://github.com/alrayyes/washy-washy-pdf/issues/49)
+
 ## [2.3.2](https://github.com/alrayyes/washy-washy-pdf/compare/v2.3.1...v2.3.2) (2026-08-23)
 
 ### Bug Fixes
