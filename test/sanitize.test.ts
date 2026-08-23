@@ -47,6 +47,24 @@ describe("sanitizeInstructions", () => {
     expect(clean[0]?.notes).toBe("'note' ");
     expect(dropped).toEqual(["\u{1F600}"]);
   });
+
+  // #49: ReferenceCredit (added by #30) reads referenceName/referenceLink
+  // straight off the item, but this function never cleaned either — a
+  // citation with a curly quote or an emoji would reach the PDF un-
+  // transliterated instead of being handled like every other field.
+  test("also cleans referenceName and referenceLink", () => {
+    const items = resolve([
+      pile(1, {
+        referenceName: "‘Manufacturer’ guide \u{1F600}",
+        referenceLink: "https://example.com/care-guide",
+      }),
+    ]);
+    const { items: clean, dropped } = sanitizeInstructions(items);
+
+    expect(clean[0]?.referenceName).toBe("'Manufacturer' guide ");
+    expect(clean[0]?.referenceLink).toBe("https://example.com/care-guide");
+    expect(dropped).toEqual(["\u{1F600}"]);
+  });
 });
 
 describe("render functions report what they dropped", () => {
