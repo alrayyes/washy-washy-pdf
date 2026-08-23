@@ -1,3 +1,9 @@
+## [2.3.5](https://github.com/alrayyes/washy-washy-pdf/compare/v2.3.4...v2.3.5) (2026-08-23)
+
+### Bug Fixes
+
+* widen [#51](https://github.com/alrayyes/washy-washy-pdf/issues/51)'s citation-footnote protection to a trailing window ([#55](https://github.com/alrayyes/washy-washy-pdf/issues/55)) ([a37d0d8](https://github.com/alrayyes/washy-washy-pdf/commit/a37d0d81e9768b80c70dcf50d373ea05a8d6c4c0))
+
 ## [2.3.4](https://github.com/alrayyes/washy-washy-pdf/compare/v2.3.3...v2.3.4) (2026-08-23)
 
 ### Bug Fixes
