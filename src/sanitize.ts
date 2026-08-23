@@ -96,6 +96,8 @@ export function sanitizeInstructions(items: ResolvedInstruction[]): {
     ironSetting: clean(item.ironSetting),
     drying: clean(item.drying),
     notes: clean(item.notes),
+    referenceName: clean(item.referenceName),
+    referenceLink: clean(item.referenceLink),
     mixesWith: item.mixesWith.map(clean),
   }));
 
