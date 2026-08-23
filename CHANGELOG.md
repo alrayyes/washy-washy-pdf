@@ -1,3 +1,9 @@
+## [2.0.2](https://github.com/alrayyes/washy-washy-pdf/compare/v2.0.1...v2.0.2) (2026-08-23)
+
+### Bug Fixes
+
+* **ci:** don't regenerate PDFs in the release screenshot step ([#40](https://github.com/alrayyes/washy-washy-pdf/issues/40)) ([7b7038d](https://github.com/alrayyes/washy-washy-pdf/commit/7b7038d0927bdc9d97fab9c0e8beb96dc6dc0d6f))
+
 ## [2.0.1](https://github.com/alrayyes/washy-washy-pdf/compare/v2.0.0...v2.0.1) (2026-08-22)
 
 ### Bug Fixes
