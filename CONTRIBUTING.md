@@ -198,3 +198,16 @@ That job pushes with `LEFTHOOK=0`. The hooks install themselves on
 release over the tooling rather than the prose. Whatever that hook would have
 checked already ran on that exact commit, and it is the green run that starts
 the release in the first place.
+
+Before any of that, the job also re-shoots `docs/*.png` from the `docs/*.pdf`
+already on `main` (`bun run screenshots`, via semantic-release's exec
+plugin) and lets `@semantic-release/git` commit whatever changed alongside
+the version bump. It doesn't regenerate the PDFs themselves —
+`test/screenshots.test.ts` already fails a pull request whose PDFs and PNGs
+have drifted, so the PDFs going into a release are already current, and
+re-rendering them here would add nothing but churn: `@react-pdf/renderer`
+stamps a fresh `CreationDate` and `/ID` into every render, so two runs over
+an unchanged chart never produce identical bytes. Re-shooting the PNGs is
+cheap and closes the one gap the pull-request check leaves — a screenshot
+committed by hand without the PDF it claims to be taken from having actually
+changed.
