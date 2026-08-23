@@ -1,3 +1,9 @@
+## [2.3.2](https://github.com/alrayyes/washy-washy-pdf/compare/v2.3.1...v2.3.2) (2026-08-23)
+
+### Bug Fixes
+
+* card sections interleave wash and iron content instead of grouping by phase ([#50](https://github.com/alrayyes/washy-washy-pdf/issues/50)) ([c2af519](https://github.com/alrayyes/washy-washy-pdf/commit/c2af5190b03a6406fb326005fdc0c4fae8f192f3)), closes [83/#84](https://github.com/83/washy-washy-pdf/issues/84) [#32](https://github.com/alrayyes/washy-washy-pdf/issues/32)
+
 ## [2.3.1](https://github.com/alrayyes/washy-washy-pdf/compare/v2.3.0...v2.3.1) (2026-08-23)
 
 ### Bug Fixes
