@@ -45,3 +45,46 @@ describe("summaryColumns", () => {
     });
   }
 });
+
+describe("card reference citation", () => {
+  // #30: `Instruction` gained `referenceName`/`referenceLink` (@washy-washy/core@1.3.0)
+  // but nothing here drew them — a chart carrying real citations still
+  // printed cards with no visible trace of who backed up an instruction.
+  test("a set referenceName appears on the card", async () => {
+    const items = resolve([pile(1, { referenceName: "Manufacturer care guide" })]);
+    const text = (await pageText((await renderPrint(items, MACHINE)).pdf)).join("\n");
+
+    expect(text).toContain("Manufacturer care guide");
+  });
+
+  test("an empty referenceName changes nothing", async () => {
+    const uncited = resolve([pile(1)]);
+    const text = (await pageText((await renderPrint(uncited, MACHINE)).pdf)).join("\n");
+
+    expect(text).not.toContain("—");
+    expect(text).not.toContain("Manufacturer care guide");
+  });
+
+  test("a referenceLink renders as a reachable PDF link annotation", async () => {
+    const items = resolve([
+      pile(1, {
+        referenceName: "Manufacturer care guide",
+        referenceLink: "https://example.com/care-guide",
+      }),
+    ]);
+    const { pdf: bytes } = await renderPrint(items, MACHINE);
+
+    // pdf-lib exposes annotation dicts, but not the /URI action inside one
+    // in a typed way worth the code here — the raw stream is unambiguous:
+    // a URI PDF action stores the target literally as `(https://…)`.
+    const raw = Buffer.from(bytes).toString("latin1");
+    expect(raw).toContain("https://example.com/care-guide");
+  });
+
+  test("no referenceLink means no link annotation, just the credited name", async () => {
+    const items = resolve([pile(1, { referenceName: "Manufacturer care guide" })]);
+    const { pdf: bytes } = await renderPrint(items, MACHINE);
+
+    expect(Buffer.from(bytes).toString("latin1")).not.toContain("/Subtype /Link");
+  });
+});

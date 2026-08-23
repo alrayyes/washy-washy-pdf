@@ -41,6 +41,8 @@ export function pile(index: number, overrides: Partial<Instruction> = {}): Instr
     colourGroup: "colour",
     mixTags: [],
     notes: "",
+    referenceName: "",
+    referenceLink: "",
     ...overrides,
   };
 }
