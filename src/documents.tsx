@@ -197,6 +197,21 @@ function SectionHeading({ children }: { children: string }) {
 }
 
 /**
+ * How much room the card's last field asks to keep with it before starting.
+ *
+ * #17 let a card taller than one page split rather than warning
+ * (`wrap={false}` came off `Card`/`IronCard`'s container) — correct for a
+ * card that genuinely doesn't fit, but ordinary pagination can also land
+ * the break line right at a card's closing border and padding, once
+ * everything with actual content has already rendered — stranding a
+ * near-blank page holding nothing but that border (#34). Asking for this
+ * much room ahead of the last field means that field, plus the chrome that
+ * closes the card after it, moves to the next page together rather than
+ * splitting apart.
+ */
+const CARD_TAIL_MIN_PRESENCE_AHEAD = 30;
+
+/**
  * Who backs up a care instruction that isn't obvious from the garment
  * itself — "the label says 40°" doesn't need one, "the manufacturer says
  * wash these alone" might. `null` when nothing in the group cites anyone,
@@ -352,8 +367,10 @@ function Card({
         </View>
       )}
 
-      <SplitField label="Notes" items={group} pick={(member) => member.notes} />
-      <ReferenceCredit items={group} />
+      <View minPresenceAhead={CARD_TAIL_MIN_PRESENCE_AHEAD}>
+        <SplitField label="Notes" items={group} pick={(member) => member.notes} />
+        <ReferenceCredit items={group} />
+      </View>
     </View>
   );
 }
@@ -443,7 +460,7 @@ function IronCard({
         </View>
       </View>
 
-      <View style={{ marginTop: 4 }}>
+      <View style={{ marginTop: 4 }} minPresenceAhead={CARD_TAIL_MIN_PRESENCE_AHEAD}>
         <SectionHeading>{setting ? "How" : "Never these"}</SectionHeading>
         {group.map((member) => {
           // On the no-iron card the heading has said it already, so only a
@@ -480,8 +497,8 @@ function IronCard({
             </View>
           );
         })}
+        <ReferenceCredit items={group} />
       </View>
-      <ReferenceCredit items={group} />
     </View>
   );
 }

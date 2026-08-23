@@ -111,6 +111,32 @@ describe("reference sheet overflow", () => {
   });
 });
 
+describe("card page overflow", () => {
+  // #34: a card too long for the remaining space on a page splits, per
+  // #17, rather than warning — but the split point can land right at the
+  // card's own closing border and padding, once every field with actual
+  // content has already rendered. What's left is a page holding nothing
+  // but that border: a near-blank continuation page between two content
+  // pages.
+  test("the trailing page after a split card carries real content, not just closing chrome", async () => {
+    const longNote = (n: string) =>
+      `Detailed care note for ${n} covering fabric, colour and handling instructions that run ` +
+      `fairly long to mimic a real chart entry with several clauses, and then some more prose ` +
+      `to pad it out further still.`;
+    const items = resolve(
+      Array.from({ length: 10 }, (_, i) =>
+        pile(i + 1, { detergent: longNote(`pile ${i + 1}`), notes: longNote(`notes ${i + 1}`) }),
+      ),
+    );
+
+    const { pdf: bytes } = await renderPrint(items, MACHINE, "full");
+    expect((await inkPerPage(bytes)).filter((ink) => ink < 1000)).toEqual([]);
+
+    const doc = await PDFDocument.load(bytes);
+    expect(doc.getPageCount()).toBeGreaterThan(1);
+  }, 30_000);
+});
+
 describe("bundled example stays visually unchanged", () => {
   // The existing 24-pile stress fixture, unaffected by any of the three
   // guards above — it never reaches the card-height, matrix-cell, or
