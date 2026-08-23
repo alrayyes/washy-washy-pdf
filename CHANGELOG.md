@@ -1,3 +1,9 @@
+## [2.2.0](https://github.com/alrayyes/washy-washy-pdf/compare/v2.1.0...v2.2.0) (2026-08-23)
+
+### Features
+
+* explain what a bold pile name means in the Loads table ([#44](https://github.com/alrayyes/washy-washy-pdf/issues/44)) ([80cf25b](https://github.com/alrayyes/washy-washy-pdf/commit/80cf25b2022d6038854de939618f6a50be3c636a)), closes [#25](https://github.com/alrayyes/washy-washy-pdf/issues/25)
+
 ## [2.1.0](https://github.com/alrayyes/washy-washy-pdf/compare/v2.0.2...v2.1.0) (2026-08-23)
 
 ### Features
