@@ -212,7 +212,7 @@ function SectionHeading({ children }: { children: string }) {
 const CARD_TAIL_MIN_PRESENCE_AHEAD = 30;
 
 /**
- * How much of a following `ReferenceCredit` a card's last real row asks to
+ * How much of a following `ReferenceCredit` a card's trailing rows ask to
  * keep with it, when there's a citation to protect (#51).
  *
  * `CARD_TAIL_MIN_PRESENCE_AHEAD` guards the closing chrome once a card's
@@ -228,6 +228,19 @@ const CARD_TAIL_MIN_PRESENCE_AHEAD = 30;
  * the number here is.
  */
 const REFERENCE_CREDIT_MIN_PRESENCE_AHEAD = 100;
+/**
+ * How many of a card's trailing rows carry that protection.
+ *
+ * Guarding only the single row before `ReferenceCredit` still let a
+ * citation drag along nothing but its own short row onto a fresh page —
+ * real enough not to be blank outright, but still under the near-blank
+ * floor when that one row is itself short. Whichever of these trailing
+ * rows actually sits at the real page boundary is the one whose guard
+ * fires, pulling itself, everything after it, and the citation onto the
+ * next page together — so a wider window buys more room without knowing
+ * in advance which row that will be.
+ */
+const REFERENCE_CREDIT_PROTECTED_ROWS = 6;
 
 /**
  * Who backs up a care instruction that isn't obvious from the garment
@@ -484,11 +497,18 @@ function IronCard({
           // On the no-iron card the heading has said it already, so only a
           // reason earns the second column. Elsewhere the line is the point.
           const note = member.ironingNotes;
-          // minPresenceAhead protects what follows the element it's set on,
-          // not the element itself — so the row asking for room is the one
-          // *before* the row ReferenceCredit actually trails.
+          // minPresenceAhead protects what follows the element it's set
+          // on, not the element itself, and react-pdf caps the request at
+          // however far the real content actually extends — so marking
+          // every row in the trailing window, not just the one right
+          // before the citation, means whichever of them ends up sitting
+          // at the actual page boundary drags itself, the rows after it,
+          // and the citation together. One row's worth of protection
+          // (#51's original fix) can itself be too short to clear the
+          // near-blank floor when the dragged rows are themselves short.
           const protectCredit =
-            memberIndex === group.length - 2 && group.some((item) => item.referenceName !== "");
+            memberIndex >= group.length - REFERENCE_CREDIT_PROTECTED_ROWS &&
+            group.some((item) => item.referenceName !== "");
           return (
             <View
               key={member.clothingType}

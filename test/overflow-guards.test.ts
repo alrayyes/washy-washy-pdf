@@ -171,6 +171,31 @@ describe("reference-citation footnote overflow", () => {
     const doc = await PDFDocument.load(bytes);
     expect(doc.getPageCount()).toBeGreaterThan(1);
   }, 30_000);
+
+  // Reopened: the fix above dragged the citation's own row along, but a
+  // single short row plus the citation can itself still land under the
+  // near-blank floor — washy-washy-cli's real chart, with much shorter
+  // per-pile notes than the fixture above, produced exactly that (two
+  // short rows plus the citation, 904 bytes). A wider trailing window is
+  // what actually needs covering, not just the one row before the
+  // citation.
+  test("a citation still clears the floor when the surrounding rows are short", async () => {
+    const items = resolve([
+      ...Array.from({ length: 69 }, (_, i) =>
+        pile(i + 1, { clothingType: `Garment ${i + 1}`, ironing: false, ironingNotes: "No." }),
+      ),
+      pile(70, {
+        clothingType: "Synthetic activewear",
+        ironing: false,
+        ironingNotes: "Do not iron — heat-sensitive.",
+        referenceName: "Dirty Labs",
+        referenceLink: "https://example.com/dirty-labs-synthetic",
+      }),
+    ]);
+
+    const { pdf: bytes } = await renderPrint(items, MACHINE, "iron");
+    expect((await inkPerPage(bytes)).filter((ink) => ink < 1000)).toEqual([]);
+  }, 30_000);
 });
 
 describe("bundled example stays visually unchanged", () => {
