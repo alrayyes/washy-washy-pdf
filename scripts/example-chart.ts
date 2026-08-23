@@ -43,6 +43,8 @@ export const CHART: Instruction[] = [
     colourGroup: "white",
     mixTags: [],
     notes: "Wash whites on their own.",
+    referenceName: "",
+    referenceLink: "",
   },
   {
     clothingType: "Coloured shirts",
@@ -60,6 +62,8 @@ export const CHART: Instruction[] = [
     colourGroup: "colour",
     mixTags: [],
     notes: "",
+    referenceName: "",
+    referenceLink: "",
   },
   {
     clothingType: "Dark jeans",
@@ -77,6 +81,8 @@ export const CHART: Instruction[] = [
     colourGroup: "dark",
     mixTags: ["dye-bleeder"],
     notes: "Inside out, zips and buttons closed.",
+    referenceName: "",
+    referenceLink: "",
   },
   {
     clothingType: "Merino jumper",
@@ -94,6 +100,11 @@ export const CHART: Instruction[] = [
     colourGroup: "any",
     mixTags: [],
     notes: "Turn inside out, wash with wool only.",
+    // The one pile in this example that cites something, so the screenshots
+    // show a card with a reference credit rather than every pile leaving it
+    // empty.
+    referenceName: "Manufacturer care guide",
+    referenceLink: "https://example.com/merino-care-guide",
   },
   {
     clothingType: "Synthetic activewear",
@@ -111,5 +122,7 @@ export const CHART: Instruction[] = [
     colourGroup: "sport",
     mixTags: ["lint-magnet"],
     notes: "Inside out. Never softener.",
+    referenceName: "",
+    referenceLink: "",
   },
 ];
