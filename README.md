@@ -66,19 +66,20 @@ bun add @washy-washy/pdf @washy-washy/core react
 ## Usage
 
 ```tsx
-import { renderPhone, renderPrint } from "@washy-washy/pdf";
+import { renderCard, renderPhone, renderPrint } from "@washy-washy/pdf";
 import { resolve } from "@washy-washy/core";
 
 const items = resolve(instructions); // Instruction[] -> ResolvedInstruction[]
 
 const phone = await renderPhone(items, machine); // { pdf, height, attempts, dropped }
 const print = await renderPrint(items, machine); // { pdf, dropped }
+const card = await renderCard(items.slice(0, 1), machine); // one pile's group, on its own sheet
 ```
 
-Both functions render repeatedly and bisect the page height (`renderPhone`)
-or the table density (`renderPrint`) until the sheet fits on exactly one
-page — see [CONTRIBUTING.md](CONTRIBUTING.md#gotchas) for why, and how far
-each one can stretch before it gives up.
+`renderPhone` and `renderCard` render repeatedly and bisect the page height,
+and `renderPrint` bisects the table density, until the sheet fits on
+exactly one page — see [CONTRIBUTING.md](CONTRIBUTING.md#gotchas) for why,
+and how far each one can stretch before it gives up.
 
 `dropped` lists the distinct characters the chart carried that this
 package's Helvetica font can't render — usually empty. What has a WinAnsi
@@ -90,9 +91,9 @@ Every drawing function takes a `variant` — `"full"`, `"wash"`, or `"iron"` —
 for the split sheets: the same chart with the iron's half or the machine's
 half left out, for whichever room you're standing in.
 
-`PhoneDocument`, `PrintDocument`, and `ReferenceDocument` are also exported
-directly, for rendering with your own `@react-pdf/renderer` pipeline instead
-of the bisecting helpers above.
+`PhoneDocument`, `PrintDocument`, `ReferenceDocument`, and `CardDocument` are
+also exported directly, for rendering with your own `@react-pdf/renderer`
+pipeline instead of the bisecting helpers above.
 
 The full API reference — every export, its signature, and a runnable
 example — is generated with TypeDoc and published at
