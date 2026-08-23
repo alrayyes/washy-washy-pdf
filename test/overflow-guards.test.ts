@@ -120,9 +120,11 @@ describe("card page overflow", () => {
   // pages.
   test("the trailing page after a split card carries real content, not just closing chrome", async () => {
     const longNote = (n: string) =>
-      `Detailed care note for ${n} covering fabric, colour and handling instructions that run fairly long to mimic a real chart entry with several clauses.`;
+      `Detailed care note for ${n} covering fabric, colour and handling instructions that run ` +
+      `fairly long to mimic a real chart entry with several clauses, and then some more prose ` +
+      `to pad it out further still.`;
     const items = resolve(
-      Array.from({ length: 16 }, (_, i) =>
+      Array.from({ length: 10 }, (_, i) =>
         pile(i + 1, { detergent: longNote(`pile ${i + 1}`), notes: longNote(`notes ${i + 1}`) }),
       ),
     );
