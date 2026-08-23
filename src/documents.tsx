@@ -341,18 +341,10 @@ function Card({
         </Text>
       </View>
 
+      <SectionHeading>Wash</SectionHeading>
       <ControlPanel item={item} dialSize={compact ? 68 : 78} />
 
       <SplitField label="Detergent" items={group} pick={(member) => member.detergent} />
-
-      {variant !== "wash" && (
-        <View style={{ marginTop: 5 }}>
-          <SectionHeading>Iron</SectionHeading>
-          <IronPanel items={group} dialSize={compact ? 54 : 62} />
-        </View>
-      )}
-
-      <SplitField label="Drying" items={group} pick={(member) => member.drying} />
       <Field
         label="Wash together with"
         value={
@@ -366,6 +358,15 @@ function Card({
         }
         emphasis
       />
+      <SplitField label="Drying" items={group} pick={(member) => member.drying} />
+
+      {variant !== "wash" && (
+        <View style={{ marginTop: 5 }}>
+          <SectionHeading>Iron</SectionHeading>
+          <IronPanel items={group} dialSize={compact ? 54 : 62} />
+        </View>
+      )}
+
       <View minPresenceAhead={CARD_TAIL_MIN_PRESENCE_AHEAD}>
         <SplitField label="Notes" items={group} pick={(member) => member.notes} />
         <ReferenceCredit items={group} />
