@@ -1,3 +1,9 @@
+## [2.3.1](https://github.com/alrayyes/washy-washy-pdf/compare/v2.3.0...v2.3.1) (2026-08-23)
+
+### Bug Fixes
+
+* a card page can spill a single tiny fragment onto a near-blank continuation page ([#48](https://github.com/alrayyes/washy-washy-pdf/issues/48)) ([1f0df32](https://github.com/alrayyes/washy-washy-pdf/commit/1f0df3269816862626d4183309a817d52df49720)), closes [#17](https://github.com/alrayyes/washy-washy-pdf/issues/17) [#34](https://github.com/alrayyes/washy-washy-pdf/issues/34)
+
 ## [2.3.0](https://github.com/alrayyes/washy-washy-pdf/compare/v2.2.0...v2.3.0) (2026-08-23)
 
 ### Features

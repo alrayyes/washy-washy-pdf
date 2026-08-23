@@ -73,7 +73,7 @@ const items = resolve(instructions); // Instruction[] -> ResolvedInstruction[]
 
 const phone = await renderPhone(items, machine); // { pdf, height, attempts, dropped }
 const print = await renderPrint(items, machine); // { pdf, dropped }
-const card = await renderCard(items.slice(0, 1), machine); // one pile's group, on its own sheet
+const card = await renderCard(items.slice(0, 1), machine); // one pile's group -> { pdf, height, attempts, dropped }
 ```
 
 `renderPhone` and `renderCard` render repeatedly and bisect the page height,
