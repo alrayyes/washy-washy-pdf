@@ -1,3 +1,9 @@
+## [2.3.0](https://github.com/alrayyes/washy-washy-pdf/compare/v2.2.0...v2.3.0) (2026-08-23)
+
+### Features
+
+* render a chart row's reference citation on its card ([#45](https://github.com/alrayyes/washy-washy-pdf/issues/45)) ([89bf4a8](https://github.com/alrayyes/washy-washy-pdf/commit/89bf4a8b5d2836e34b0177efd4da70c3df9b1c98)), closes [#30](https://github.com/alrayyes/washy-washy-pdf/issues/30)
+
 ## [2.2.0](https://github.com/alrayyes/washy-washy-pdf/compare/v2.1.0...v2.2.0) (2026-08-23)
 
 ### Features
