@@ -106,3 +106,37 @@ describe("Loads bold-group caption", () => {
     expect((await inkPerPage(result.pdf)).filter((ink) => ink < 1000)).toEqual([]);
   });
 });
+
+describe("Card wash/iron section order", () => {
+  // #32: the card printed dial/chips, Detergent, Iron, Drying, then "Wash
+  // together with" last — splitting the wash-phase fields apart with the
+  // iron section in the middle, and burying "Wash together with" after
+  // Drying instead of grouping it with the rest of the wash phase. GINETEX
+  // orders care information Washing before Ironing; washy-washy-web hit
+  // and fixed the identical defect in its own card component (#83/#84).
+  test("groups the wash-phase fields together, unbroken, with iron last before Notes", async () => {
+    const items = resolve([pile(1, { notes: "Check the label first." })]);
+    const pages = await pageText((await renderPrint(items, MACHINE)).pdf);
+    // The reference table's own "Iron" column, on an earlier page, would
+    // otherwise be the first hit for "IRON" — the card itself is the page
+    // carrying "DETERGENT", which only the card prints.
+    const cardText = pages.find((page) => page.includes("DETERGENT"));
+    if (cardText === undefined) throw new Error("no card page found");
+
+    const order = ["WASH", "DETERGENT", "WASH TOGETHER WITH", "DRYING", "IRON", "NOTES"].map(
+      (label) => cardText.indexOf(label),
+    );
+    expect(order.every((position) => position !== -1)).toBe(true);
+    expect(order).toEqual([...order].sort((a, b) => a - b));
+  });
+
+  test("a washing-only card has a Wash heading and no Iron section", async () => {
+    const items = resolve([pile(1)]);
+    const pages = await pageText((await renderPrint(items, MACHINE, "wash")).pdf);
+    const cardText = pages.find((page) => page.includes("DETERGENT"));
+    if (cardText === undefined) throw new Error("no card page found");
+
+    expect(cardText).toContain("WASH");
+    expect(cardText).not.toContain("IRON");
+  });
+});
