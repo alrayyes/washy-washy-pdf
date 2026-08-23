@@ -1,3 +1,9 @@
+## [2.3.4](https://github.com/alrayyes/washy-washy-pdf/compare/v2.3.3...v2.3.4) (2026-08-23)
+
+### Bug Fixes
+
+* reference-citation footnote spills alone onto a near-blank continuation page ([#54](https://github.com/alrayyes/washy-washy-pdf/issues/54)) ([e53135b](https://github.com/alrayyes/washy-washy-pdf/commit/e53135b540e0ce12b28b095a22dbe8d0862bf6c9)), closes [17/#34](https://github.com/17/washy-washy-pdf/issues/34) [#51](https://github.com/alrayyes/washy-washy-pdf/issues/51)
+
 ## [2.3.3](https://github.com/alrayyes/washy-washy-pdf/compare/v2.3.2...v2.3.3) (2026-08-23)
 
 ### Bug Fixes
