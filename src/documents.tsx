@@ -469,6 +469,16 @@ function Loads({ items }: { items: ResolvedInstruction[] }) {
   return (
     <View style={{ marginBottom: 10 }}>
       <SectionHeading>Loads — one line, one wash</SectionHeading>
+      <Text
+        style={{
+          fontFamily: font.sans,
+          fontSize: type.micro,
+          color: colour.muted,
+          marginBottom: space.xs,
+        }}
+      >
+        Bold pile names share one wash.
+      </Text>
       <View
         style={{
           borderWidth: space.ruleWidth,

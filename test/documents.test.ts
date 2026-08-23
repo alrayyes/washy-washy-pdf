@@ -3,7 +3,7 @@ import { resolve, variants } from "@washy-washy/core/browser";
 import { summaryColumns, TABLE_WIDTH_BUDGET } from "../src/documents";
 import { renderPrint } from "../src/render";
 import { MACHINE, pile } from "./fixtures";
-import { pageText } from "./pdf-text";
+import { inkPerPage, pageText } from "./pdf-text";
 
 /** Same gutter `SummaryTable` gives the row-number column. */
 const ROW_NUMBER_GUTTER = 14;
@@ -44,4 +44,22 @@ describe("summaryColumns", () => {
       expect(width).toBeLessThanOrEqual(TABLE_WIDTH_BUDGET);
     });
   }
+});
+
+describe("Loads bold-group caption", () => {
+  // #25: bold pile names meant "these share one wash," with no explanation
+  // on the page — the only cue was the "(on its own)" suffix on solo rows,
+  // which says nothing about what the absence of that suffix, plus bold
+  // type, is supposed to mean.
+  test("explains what bold means, without pushing the reference sheet onto a near-blank overflow page", async () => {
+    const items = resolve([pile(1), pile(2, { clothingType: "Pile 2" })]);
+    const result = await renderPrint(items, MACHINE);
+    const text = (await pageText(result.pdf)).join("\n");
+
+    expect(text).toContain("share one wash");
+    // Same guard #26 added for the legend row: a caption that quietly grows
+    // the reference sheet's own section past one page leaves a near-blank
+    // page behind rather than failing outright.
+    expect((await inkPerPage(result.pdf)).filter((ink) => ink < 1000)).toEqual([]);
+  });
 });
