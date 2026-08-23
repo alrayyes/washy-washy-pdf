@@ -1,3 +1,9 @@
+## [2.1.0](https://github.com/alrayyes/washy-washy-pdf/compare/v2.0.2...v2.1.0) (2026-08-23)
+
+### Features
+
+* a real single-pile card document ([#42](https://github.com/alrayyes/washy-washy-pdf/issues/42)) ([e4f5632](https://github.com/alrayyes/washy-washy-pdf/commit/e4f5632c002127094ff1b8b37e4b13bbdeb79a30)), closes [#29](https://github.com/alrayyes/washy-washy-pdf/issues/29) [#36](https://github.com/alrayyes/washy-washy-pdf/issues/36) [#31](https://github.com/alrayyes/washy-washy-pdf/issues/31) [#14](https://github.com/alrayyes/washy-washy-pdf/issues/14)
+
 ## [2.0.2](https://github.com/alrayyes/washy-washy-pdf/compare/v2.0.1...v2.0.2) (2026-08-23)
 
 ### Bug Fixes
