@@ -9,7 +9,7 @@ import {
 } from "@washy-washy/core/browser";
 import { PDFDocument } from "pdf-lib";
 import type { ReactElement } from "react";
-import { PhoneDocument, PrintDocument, ReferenceDocument } from "./documents";
+import { CardDocument, PhoneDocument, PrintDocument, ReferenceDocument } from "./documents";
 import { sanitizeInstructions } from "./sanitize";
 
 async function pageCount(bytes: Uint8Array): Promise<number> {
@@ -67,12 +67,58 @@ export interface PhoneRender {
 }
 
 /**
+ * Finds the shortest page height a render function still comes back one
+ * page at — the trick `renderPhone` and `renderCard` both need: there is no
+ * way to ask the layout engine how tall the content came out, so the height
+ * is found by rendering. Grow from `initialGuess` until it stops spilling
+ * onto a second page, then bisect back down until the trailing blank space
+ * is under `tolerance`. Each pass is a few tens of milliseconds.
+ */
+async function fitToOnePage(
+  render: (height: number) => Promise<Uint8Array>,
+  initialGuess: number,
+  tolerance: number,
+): Promise<{ pdf: Uint8Array; height: number; attempts: number }> {
+  let attempts = 0;
+
+  const fits = async (height: number) => {
+    attempts += 1;
+    const pdf = await render(height);
+    return { pdf, single: (await pageCount(pdf)) === 1 };
+  };
+
+  let tooShort = 0;
+  let height = Math.ceil(initialGuess);
+  let best: { pdf: Uint8Array; height: number } | null = null;
+
+  for (let step = 0; step < 12 && best === null; step += 1) {
+    const { pdf, single } = await fits(height);
+    if (single) best = { pdf, height };
+    else {
+      tooShort = height;
+      height = Math.ceil(height * 1.35);
+    }
+  }
+  if (best === null) throw new Error("could not fit the content onto one page");
+
+  let low = tooShort;
+  let high = best.height;
+  while (high - low > tolerance) {
+    const middle = Math.round((low + high) / 2);
+    const { pdf, single } = await fits(middle);
+    if (single) {
+      best = { pdf, height: middle };
+      high = middle;
+    } else {
+      low = middle;
+    }
+  }
+
+  return { pdf: best.pdf, height: best.height, attempts };
+}
+
+/**
  * Renders the phone sheet as a single continuous page.
- *
- * There is no way to ask the layout engine how tall the content came out, so
- * the height is found by rendering: grow until it stops spilling onto a second
- * page, then bisect back down until the trailing blank space is under a
- * centimetre. Each pass is a few tens of milliseconds.
  *
  * @example
  * ```ts
@@ -90,44 +136,63 @@ export async function renderPhone(
   tolerance = 8,
 ): Promise<PhoneRender> {
   const { items: clean, dropped } = sanitizeInstructions(items);
-  const render = (height: number) =>
-    renderToBytes(PhoneDocument({ items: clean, height, machine, variant }));
-  let attempts = 0;
+  const { pdf, height, attempts } = await fitToOnePage(
+    (height) => renderToBytes(PhoneDocument({ items: clean, height, machine, variant })),
+    guessHeight(clean, machine, variant),
+    tolerance,
+  );
+  return { pdf, height, attempts, dropped };
+}
 
-  const fits = async (height: number) => {
-    attempts += 1;
-    const pdf = await render(height);
-    return { pdf, single: (await pageCount(pdf)) === 1 };
-  };
+/**
+ * Rough first guess at one card's height, refined by measurement the same
+ * way `guessHeight` seeds the phone sheet — a single group rather than a
+ * whole chart, so the constant is the fixed chrome (masthead, the
+ * disclaimer text) around one card instead of many.
+ */
+function guessCardHeight(items: ResolvedInstruction[], variant: Variant): number {
+  const length = (pick: (item: ResolvedInstruction) => string) =>
+    items.reduce((total, item) => total + pick(item).length, 0);
 
-  let tooShort = 0;
-  let height = Math.ceil(guessHeight(clean, machine, variant));
-  let best: { pdf: Uint8Array; height: number } | null = null;
+  if (variant === "iron") return 160 + length((item) => item.ironingNotes) * 0.5;
 
-  for (let step = 0; step < 12 && best === null; step += 1) {
-    const { pdf, single } = await fits(height);
-    if (single) best = { pdf, height };
-    else {
-      tooShort = height;
-      height = Math.ceil(height * 1.35);
-    }
-  }
-  if (best === null) throw new Error("could not fit the phone sheet onto one page");
+  const prose =
+    length((item) => item.detergent) + length((item) => item.drying) + length((item) => item.notes);
+  return 190 + (prose + length((item) => item.ironingNotes)) * 0.4;
+}
 
-  let low = tooShort;
-  let high = best.height;
-  while (high - low > tolerance) {
-    const middle = Math.round((low + high) / 2);
-    const { pdf, single } = await fits(middle);
-    if (single) {
-      best = { pdf, height: middle };
-      high = middle;
-    } else {
-      low = middle;
-    }
-  }
-
-  return { pdf: best.pdf, height: best.height, attempts, dropped };
+/**
+ * Renders one pile's card on its own sheet — the masthead and (unless the
+ * cut is ironing-only) the duration disclaimer around it, sized to the card
+ * the same way `renderPhone` sizes the whole chart.
+ *
+ * `items` is one resolved group — usually a single pile, occasionally
+ * several sharing identical settings — the same shape `Card`/`IronCard`
+ * take internally.
+ *
+ * @example
+ * ```ts
+ * import { renderCard } from "@washy-washy/pdf";
+ * import { resolve } from "@washy-washy/core";
+ *
+ * const items = resolve(instructions);
+ * const group = items.slice(0, 1); // one pile's group
+ * const { pdf, height, attempts } = await renderCard(group, machine);
+ * ```
+ */
+export async function renderCard(
+  items: ResolvedInstruction[],
+  machine: Machine,
+  variant: Variant = "full",
+  tolerance = 8,
+): Promise<PhoneRender> {
+  const { items: clean, dropped } = sanitizeInstructions(items);
+  const { pdf, height, attempts } = await fitToOnePage(
+    (height) => renderToBytes(CardDocument({ items: clean, height, machine, variant })),
+    guessCardHeight(clean, variant),
+    tolerance,
+  );
+  return { pdf, height, attempts, dropped };
 }
 
 /**
