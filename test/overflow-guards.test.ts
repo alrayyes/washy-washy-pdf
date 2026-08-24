@@ -237,3 +237,39 @@ describe("bundled example stays visually unchanged", () => {
     ).toEqual([]);
   }, 60_000);
 });
+
+describe("card header heading vs. duration", () => {
+  // #56: washy-washy-web hit a real layout bug where a long pile name
+  // overlapped the duration text in a card's header — the two share one row
+  // with nothing stopping a long title from colliding with a fixed-position
+  // sibling. Card's own header (documents.tsx's Card) puts the same two
+  // things in one row: `{index}. {heading}` and `durationsOf(group)`, where
+  // `heading` is every bundled pile's clothingType joined with " + " — a
+  // card merging several piles can produce a long heading right next to the
+  // duration. The title Text carries flex: 1, which should make react-pdf's
+  // Yoga layout wrap it rather than overlap the way the web app's CSS did,
+  // but nothing exercised that assumption before this test.
+  test("a long multi-pile heading doesn't crowd out the duration text", async () => {
+    const clothingTypes = [
+      "White cotton bath towels and hand towels",
+      "Heavy denim work trousers and overalls",
+      "Children's cotton school uniform shirts",
+      "Delicate lace-trimmed tablecloths and napkins",
+      "Woollen winter scarves and knitted hats",
+      "Synthetic polyester sports jerseys and shorts",
+    ];
+    const items = resolve(clothingTypes.map((clothingType, i) => pile(i + 1, { clothingType })));
+
+    const { pdf: bytes } = await renderPrint(items, MACHINE, "full");
+    expect((await inkPerPage(bytes)).filter((ink) => ink < 1000)).toEqual([]);
+
+    const text = (await pageText(bytes)).join("\n");
+    // The duration survives fully — not clipped or pushed off by the title.
+    expect(text).toContain("~2:15");
+    // Every bundled pile's name survives in the heading — nothing dropped
+    // by the layout engine finding room for the duration.
+    for (const clothingType of clothingTypes) {
+      expect(text).toContain(clothingType);
+    }
+  }, 30_000);
+});
