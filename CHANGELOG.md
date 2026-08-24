@@ -1,3 +1,9 @@
+## [2.3.6](https://github.com/alrayyes/washy-washy-pdf/compare/v2.3.5...v2.3.6) (2026-08-24)
+
+### Bug Fixes
+
+* a merged card's Notes field can strand a citation on a near-blank page ([#57](https://github.com/alrayyes/washy-washy-pdf/issues/57)) ([0544302](https://github.com/alrayyes/washy-washy-pdf/commit/0544302350d29014d8a619bb0e48cad7707b074d)), closes [#53](https://github.com/alrayyes/washy-washy-pdf/issues/53)
+
 ## [2.3.5](https://github.com/alrayyes/washy-washy-pdf/compare/v2.3.4...v2.3.5) (2026-08-23)
 
 ### Bug Fixes
