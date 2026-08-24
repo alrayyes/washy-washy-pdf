@@ -1,5 +1,6 @@
 import { Circle, G, Line, Path, Svg, Text, View } from "@react-pdf/renderer";
 import { type Instruction, ironSetting } from "@washy-washy/core/browser";
+import type { ReactNode } from "react";
 import { useMachine } from "./appliances";
 import { theme } from "./theme";
 
@@ -352,6 +353,22 @@ export function IronPanel({ items, dialSize = 62 }: { items: Instruction[]; dial
 }
 
 /**
+ * A trailing element (`ReferenceCredit`) a caller wants kept with `Prose`'s
+ * last rendered rows, and how many of those trailing rows should ask for
+ * the room — the same trailing-window idea `IronCard` carries itself.
+ *
+ * `minPresenceAhead` only caps its request against *sibling* nodes under the
+ * same parent (react-pdf's pagination walks one nesting level at a time), so
+ * `trailing` has to render as a flat sibling of the protected rows — inside
+ * `Prose`'s own wrapping `View`, not passed in from outside it — or the
+ * protection has nothing in that sibling list to reach (#53).
+ */
+interface TrailingProtection {
+  rows: number;
+  minPresenceAhead: number;
+}
+
+/**
  * A line of prose for a card. Where the piles sharing the card agree it reads
  * once; where they differ each pile is named, so a merged card never quietly
  * asserts one pile's advice over another's.
@@ -362,12 +379,16 @@ function Prose({
   size = type.body,
   marginTop = 0,
   emphasis = false,
+  protectTrailing,
+  trailing,
 }: {
   items: Instruction[];
   pick: (item: Instruction) => string;
   size?: number;
   marginTop?: number;
   emphasis?: boolean;
+  protectTrailing?: TrailingProtection;
+  trailing?: ReactNode;
 }) {
   const values = items.map(pick);
   const style = {
@@ -378,11 +399,26 @@ function Prose({
     marginTop,
   } as const;
 
-  // An empty Text still costs a line's height, which is a gap nobody asked for.
-  if (values.every((value) => value === "")) return null;
+  // An empty Text still costs a line's height, which is a gap nobody asked
+  // for — but a trailing element (a citation with nothing to caption, an
+  // edge case in practice) still needs to render.
+  if (values.every((value) => value === "")) return trailing ?? null;
+
+  const protectRow = (fromEnd: number) =>
+    protectTrailing && fromEnd <= protectTrailing.rows
+      ? { minPresenceAhead: protectTrailing.minPresenceAhead }
+      : {};
 
   if (values.every((value) => value === values[0])) {
-    return <Text style={style}>{values[0]}</Text>;
+    if (!trailing) return <Text style={style}>{values[0]}</Text>;
+    return (
+      <View style={{ marginTop }}>
+        <Text style={{ ...style, marginTop: 0 }} {...protectRow(1)}>
+          {values[0]}
+        </Text>
+        {trailing}
+      </View>
+    );
   }
 
   // A pile with nothing to say is left out rather than given its name and a
@@ -392,11 +428,16 @@ function Prose({
   return (
     <View style={{ marginTop }}>
       {speaking.map((item, index) => (
-        <Text key={item.clothingType} style={{ ...style, marginTop: index === 0 ? 0 : 1.5 }}>
+        <Text
+          key={item.clothingType}
+          style={{ ...style, marginTop: index === 0 ? 0 : 1.5 }}
+          {...protectRow(speaking.length - index)}
+        >
           <Text style={{ fontFamily: font.bold, color: colour.ink }}>{item.clothingType}: </Text>
           {pick(item)}
         </Text>
       ))}
+      {trailing}
     </View>
   );
 }
@@ -407,13 +448,17 @@ export function SplitField({
   items,
   pick,
   emphasis = false,
+  protectTrailing,
+  trailing,
 }: {
   label: string;
   items: Instruction[];
   pick: (item: Instruction) => string;
   emphasis?: boolean;
+  protectTrailing?: TrailingProtection;
+  trailing?: ReactNode;
 }) {
-  if (items.every((item) => pick(item) === "")) return null;
+  if (items.every((item) => pick(item) === "")) return trailing ?? null;
 
   return (
     <View style={{ marginTop: space.sm2 }}>
@@ -427,7 +472,13 @@ export function SplitField({
       >
         {label.toUpperCase()}
       </Text>
-      <Prose items={items} pick={pick} emphasis={emphasis} />
+      <Prose
+        items={items}
+        pick={pick}
+        emphasis={emphasis}
+        protectTrailing={protectTrailing}
+        trailing={trailing}
+      />
     </View>
   );
 }

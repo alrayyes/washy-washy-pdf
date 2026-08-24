@@ -399,8 +399,30 @@ function Card({
       )}
 
       <View minPresenceAhead={CARD_TAIL_MIN_PRESENCE_AHEAD}>
-        <SplitField label="Notes" items={group} pick={(member) => member.notes} />
-        <ReferenceCredit items={group} />
+        <SplitField
+          label="Notes"
+          items={group}
+          pick={(member) => member.notes}
+          trailing={<ReferenceCredit items={group} />}
+          protectTrailing={
+            group.some((member) => member.referenceName !== "")
+              ? {
+                  // Unlike IronCard's own hand-rolled rows, Card's list goes
+                  // through Prose, which has no view into how tall any row
+                  // renders — so there's no safe way to guess how far back a
+                  // fixed window needs to reach the way IronCard's did. Every
+                  // row asking for the room is still safe: react-pdf caps
+                  // minPresenceAhead at wherever the real trailing content
+                  // (the citation) actually ends, so this never reserves more
+                  // than the citation genuinely needs — it just guarantees
+                  // whichever row the real page boundary lands on is one that
+                  // asks.
+                  rows: Number.POSITIVE_INFINITY,
+                  minPresenceAhead: REFERENCE_CREDIT_MIN_PRESENCE_AHEAD,
+                }
+              : undefined
+          }
+        />
       </View>
     </View>
   );

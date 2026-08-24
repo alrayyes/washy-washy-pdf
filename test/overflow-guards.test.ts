@@ -196,6 +196,33 @@ describe("reference-citation footnote overflow", () => {
     const { pdf: bytes } = await renderPrint(items, MACHINE, "iron");
     expect((await inkPerPage(bytes)).filter((ink) => ink < 1000)).toEqual([]);
   }, 30_000);
+
+  // #53: the same risk on Card's merged Notes field, acknowledged as a gap
+  // when #51/#55 fixed IronCard. Card's Notes list goes through the shared
+  // SplitField/Prose components, which render each differing pile's line
+  // internally with no per-line access from Card the way IronCard's own
+  // .map has — so the trailing-window protection those components gained
+  // for IronCard was never wired up here. All piles below share default
+  // wash settings so cardGroups merges them onto one card, and 88 short
+  // rows plus the citation pile is where the print sheet's natural page
+  // break lands right at that boundary — found empirically the same way
+  // #55's own count was, by sweeping pile counts and watching for a
+  // trailing page under the near-blank floor (this one comes out at 634
+  // bytes on unpatched Card).
+  test("a citation on a merged card's Notes field doesn't spill alone onto a near-blank page", async () => {
+    const items = resolve([
+      ...Array.from({ length: 88 }, (_, i) => pile(i + 1, { notes: "No." })),
+      pile(89, {
+        clothingType: "Synthetic activewear",
+        notes: "Do not soak — heat-sensitive print.",
+        referenceName: "Dirty Labs",
+        referenceLink: "https://example.com/dirty-labs-synthetic",
+      }),
+    ]);
+
+    const { pdf: bytes } = await renderPrint(items, MACHINE, "full");
+    expect((await inkPerPage(bytes)).filter((ink) => ink < 1000)).toEqual([]);
+  }, 60_000);
 });
 
 describe("bundled example stays visually unchanged", () => {
