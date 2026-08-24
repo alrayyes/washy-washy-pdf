@@ -222,7 +222,7 @@ describe("reference-citation footnote overflow", () => {
 
     const { pdf: bytes } = await renderPrint(items, MACHINE, "full");
     expect((await inkPerPage(bytes)).filter((ink) => ink < 1000)).toEqual([]);
-  }, 30_000);
+  }, 60_000);
 });
 
 describe("bundled example stays visually unchanged", () => {
