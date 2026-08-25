@@ -907,28 +907,31 @@ function gist(prose: string): string {
  */
 export function summaryColumns(machine: Machine, variant: Variant): Column[] {
   if (variant === "iron") {
+    // No "why not / how" column — the ironingNotes it would gist are already
+    // printed in full on IronCard's own body below, and dropping it leaves
+    // the Thermostat column, previously the tightest fixed-width slot in
+    // this whole table, with real headroom instead.
     return [
-      { label: "Pile", width: 130, value: (i) => i.clothingType },
-      { label: "Thermostat", width: 46, value: (i) => ironLabel(machine, i) },
+      { label: "Pile", width: 160, value: (i) => i.clothingType },
+      { label: "Thermostat", width: 150, value: (i) => ironLabel(machine, i) },
       {
         label: "Steam",
-        width: 34,
+        width: 40,
         value: (i) => (i.ironing && ironSetting(machine, i.ironSetting)?.steam ? "yes" : "—"),
-      },
-      {
-        label: "Why not / how",
-        width: 295,
-        // Same rule as the card: the Thermostat column beside this one already
-        // reads "do not iron", so a cell repeating it is a cell of noise.
-        value: (i) => gist(i.ironingNotes),
       },
     ];
   }
 
   return [
     { label: "Pile", width: 110, value: (i) => i.clothingType },
-    { label: "Programme", width: 70, value: (i) => i.program },
-    { label: "°C", width: 26, value: (i) => i.temperature },
+    // Narrower than the Loads table's equivalent cell (which sits beside a
+    // flex sibling that can absorb overflow) — this row is all fixed-width
+    // siblings, so a programme name long enough to overflow this box would
+    // otherwise run straight into °C with no gap. °C gets the width this
+    // gives up: it held the least headroom of any column here for a
+    // machine-array value that isn't purely numeric.
+    { label: "Programme", width: 55, value: (i) => i.program },
+    { label: "°C", width: 41, value: (i) => i.temperature },
     { label: "Spin", width: 30, value: (i) => i.spin },
     { label: "Time", width: 34, value: (i) => i.duration },
     { label: "Buttons", width: 72, value: (i) => i.options.join(", ") || "—" },
