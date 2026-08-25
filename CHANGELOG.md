@@ -1,3 +1,9 @@
+## [2.3.7](https://github.com/alrayyes/washy-washy-pdf/compare/v2.3.6...v2.3.7) (2026-08-25)
+
+### Bug Fixes
+
+* fixed-width summary columns collide when a machine-array value runs long ([#62](https://github.com/alrayyes/washy-washy-pdf/issues/62)) ([094ebd2](https://github.com/alrayyes/washy-washy-pdf/commit/094ebd21c9a1959d0ff13fe755f9a80322b0c90f)), closes [#61](https://github.com/alrayyes/washy-washy-pdf/issues/61)
+
 ## [2.3.6](https://github.com/alrayyes/washy-washy-pdf/compare/v2.3.5...v2.3.6) (2026-08-24)
 
 ### Bug Fixes
