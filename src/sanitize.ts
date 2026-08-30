@@ -1,4 +1,4 @@
-import type { ResolvedInstruction } from "@washy-washy/core/browser";
+import type { Machine, ResolvedInstruction } from "@washy-washy/core/browser";
 
 /**
  * Explicit substitutions for characters that read as ordinary prose but
@@ -102,4 +102,46 @@ export function sanitizeInstructions(items: ResolvedInstruction[]): {
   }));
 
   return { items: items_, dropped: [...droppedChars] };
+}
+
+/**
+ * Runs every washer/iron label a `Machine` carries through `sanitizeText` —
+ * `@washy-washy/core`'s own docs say these are "copied off the fascia in
+ * whatever language it is printed in", so a non-WinAnsi machine file is an
+ * intended use case, not an edge case. Unlike `sanitizeInstructions`, these
+ * fields previously reached react-pdf raw: an unsupported character came out
+ * as mojibake instead of being transliterated or reported (#64). `key` isn't
+ * cleaned — it's an internal lookup id, never drawn as text, and the caller
+ * already sanitizes the instruction field matched against it.
+ */
+export function sanitizeMachine(machine: Machine): { machine: Machine; dropped: string[] } {
+  const droppedChars = new Set<string>();
+  const clean = (value: string): string => {
+    const result = sanitizeText(value);
+    for (const char of result.dropped) droppedChars.add(char);
+    return result.text;
+  };
+
+  const machine_: Machine = {
+    washer: {
+      ...machine.washer,
+      name: clean(machine.washer.name),
+      capacity: clean(machine.washer.capacity),
+      programs: machine.washer.programs.map(clean),
+      temperatures: machine.washer.temperatures.map(clean),
+      spins: machine.washer.spins.map(clean),
+      options: machine.washer.options.map(clean),
+    },
+    iron: {
+      ...machine.iron,
+      name: clean(machine.iron.name),
+      settings: machine.iron.settings.map((setting) => ({
+        ...setting,
+        label: clean(setting.label),
+        detail: clean(setting.detail),
+      })),
+    },
+  };
+
+  return { machine: machine_, dropped: [...droppedChars] };
 }

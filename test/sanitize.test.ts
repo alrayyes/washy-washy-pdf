@@ -1,7 +1,8 @@
 import { describe, expect, test } from "bun:test";
+import type { Machine } from "@washy-washy/core/browser";
 import { resolve } from "@washy-washy/core/browser";
 import { renderPhone, renderPrint } from "../src/render";
-import { sanitizeInstructions, sanitizeText } from "../src/sanitize";
+import { sanitizeInstructions, sanitizeMachine, sanitizeText } from "../src/sanitize";
 import { MACHINE, pile } from "./fixtures";
 import { pageText } from "./pdf-text";
 
@@ -64,6 +65,55 @@ describe("sanitizeInstructions", () => {
     expect(clean[0]?.referenceName).toBe("'Manufacturer' guide ");
     expect(clean[0]?.referenceLink).toBe("https://example.com/care-guide");
     expect(dropped).toEqual(["\u{1F600}"]);
+  });
+});
+
+// #64: washer/iron labels reached react-pdf raw — an unsupported character
+// came out as mojibake instead of being transliterated or reported the way
+// every instruction field already was.
+describe("sanitizeMachine", () => {
+  const dirtyMachine: Machine = {
+    washer: {
+      name: "Café 1400",
+      capacity: "8 kg ✓",
+      programs: ["Cottons", "Delicates \u{1F600}"],
+      temperatures: ["cold", "40°"],
+      spins: ["800", "1200"],
+      options: ["Eco…"],
+    },
+    iron: {
+      name: "Steam iron",
+      settings: [
+        { key: "1", dots: "•", label: "Low", detail: "‘Synthetics’ \u{1F600}", steam: false },
+      ],
+    },
+  };
+
+  test("cleans every washer and iron label and collects distinct dropped characters once", () => {
+    const { machine: clean, dropped } = sanitizeMachine(dirtyMachine);
+
+    expect(clean.washer.capacity).toBe("8 kg v");
+    expect(clean.washer.programs).toEqual(["Cottons", "Delicates "]);
+    expect(clean.washer.options).toEqual(["Eco..."]);
+    expect(clean.iron.settings[0]?.detail).toBe("'Synthetics' ");
+    expect(dropped).toEqual(["\u{1F600}"]);
+  });
+
+  test("does not touch a setting's key — it's an internal lookup id, never drawn as text", () => {
+    const withMappableKey: Machine = {
+      ...dirtyMachine,
+      iron: {
+        ...dirtyMachine.iron,
+        settings: [{ key: "✓", dots: "•", label: "Low", detail: "Synthetics", steam: false }],
+      },
+    };
+    expect(sanitizeMachine(withMappableKey).machine.iron.settings[0]?.key).toBe("✓");
+  });
+
+  test("a fully WinAnsi-safe machine round-trips unchanged with nothing dropped", () => {
+    const { machine: clean, dropped } = sanitizeMachine(MACHINE);
+    expect(clean).toEqual(MACHINE);
+    expect(dropped).toEqual([]);
   });
 });
 
