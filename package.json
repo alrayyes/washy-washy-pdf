@@ -1,6 +1,6 @@
 {
   "name": "@washy-washy/pdf",
-  "version": "2.3.7",
+  "version": "2.3.8",
   "description": "The React/@react-pdf/renderer components that draw a chart into a PDF, shared by the CLI and the web app.",
   "repository": {
     "type": "git",

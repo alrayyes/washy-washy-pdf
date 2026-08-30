@@ -1,3 +1,9 @@
+## [2.3.8](https://github.com/alrayyes/washy-washy-pdf/compare/v2.3.7...v2.3.8) (2026-08-30)
+
+### Bug Fixes
+
+* sanitize machine washer/iron labels before rendering ([#66](https://github.com/alrayyes/washy-washy-pdf/issues/66)) ([f4e65f7](https://github.com/alrayyes/washy-washy-pdf/commit/f4e65f781de2aa2da44b5f88d13ef2e2c6ba7a4d)), closes [#64](https://github.com/alrayyes/washy-washy-pdf/issues/64)
+
 ## [2.3.7](https://github.com/alrayyes/washy-washy-pdf/compare/v2.3.6...v2.3.7) (2026-08-25)
 
 ### Bug Fixes
