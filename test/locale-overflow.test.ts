@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { resolve } from "@washy-washy/core/browser";
 import { renderCard, renderPhone, renderPrint } from "../src/render";
+import { sanitizeText } from "../src/sanitize";
 import { AR_MACHINE, arPile, ZH_MACHINE, zhPile } from "./locale-fixtures";
 import { inkPerPage } from "./pdf-text";
 
@@ -16,10 +17,9 @@ import { inkPerPage } from "./pdf-text";
 // present. What these tests can honestly check, and do, is that the
 // overflow guards still hold once real translated content collapses down
 // through that stripping, and that nothing is dropped *silently* — every
-// removed character still comes back in `dropped`. (Rendering the
-// `Machine`'s own washer/iron labels — which aren't run through
-// `sanitizeInstructions` at all and come out as mojibake instead of being
-// stripped or reported — is a separate, real gap: alrayyes/washy-washy-pdf#64.)
+// removed character still comes back in `dropped`. (The `Machine`'s own
+// washer/iron labels go through a separate `sanitizeMachine` pass, covered
+// below and in sanitize.test.ts — see #64.)
 describe.each([
   ["ar", AR_MACHINE, arPile],
   ["zh", ZH_MACHINE, zhPile],
@@ -73,6 +73,26 @@ describe.each([
         }),
     );
     for (const char of nonWinAnsiChars) {
+      expect(dropped).toContain(char);
+    }
+  });
+
+  // #64: washer.capacity and iron.name are never echoed into any instruction
+  // field by `localePile` (only programs/temperatures/spins/options/iron
+  // detail/key are), so the only way their characters can reach `dropped`
+  // is if the machine object itself is sanitized before reaching react-pdf
+  // — before the fix, these came out as silent mojibake instead.
+  test("machine-only fields (capacity, iron name) also report their dropped characters", async () => {
+    const items = resolve(Array.from({ length: 4 }, (_, i) => pile(i + 1)));
+    const { dropped } = await renderPrint(items, machine);
+
+    const machineOnlyChars = new Set(
+      `${machine.washer.capacity}${machine.iron.name}`
+        .split("")
+        .filter((char) => sanitizeText(char).dropped.length > 0),
+    );
+    expect(machineOnlyChars.size).toBeGreaterThan(0);
+    for (const char of machineOnlyChars) {
       expect(dropped).toContain(char);
     }
   });

@@ -10,7 +10,12 @@ import {
 import { PDFDocument } from "pdf-lib";
 import type { ReactElement } from "react";
 import { CardDocument, PhoneDocument, PrintDocument, ReferenceDocument } from "./documents";
-import { sanitizeInstructions } from "./sanitize";
+import { sanitizeInstructions, sanitizeMachine } from "./sanitize";
+
+/** Merges two `dropped` lists into one, keeping each distinct character once. */
+function mergeDropped(a: string[], b: string[]): string[] {
+  return [...new Set([...a, ...b])];
+}
 
 async function pageCount(bytes: Uint8Array): Promise<number> {
   return (await PDFDocument.load(bytes)).getPageCount();
@@ -135,13 +140,15 @@ export async function renderPhone(
   variant: Variant = "full",
   tolerance = 8,
 ): Promise<PhoneRender> {
-  const { items: clean, dropped } = sanitizeInstructions(items);
+  const { items: clean, dropped: droppedItems } = sanitizeInstructions(items);
+  const { machine: cleanMachine, dropped: droppedMachine } = sanitizeMachine(machine);
   const { pdf, height, attempts } = await fitToOnePage(
-    (height) => renderToBytes(PhoneDocument({ items: clean, height, machine, variant })),
-    guessHeight(clean, machine, variant),
+    (height) =>
+      renderToBytes(PhoneDocument({ items: clean, height, machine: cleanMachine, variant })),
+    guessHeight(clean, cleanMachine, variant),
     tolerance,
   );
-  return { pdf, height, attempts, dropped };
+  return { pdf, height, attempts, dropped: mergeDropped(droppedItems, droppedMachine) };
 }
 
 /**
@@ -186,13 +193,15 @@ export async function renderCard(
   variant: Variant = "full",
   tolerance = 8,
 ): Promise<PhoneRender> {
-  const { items: clean, dropped } = sanitizeInstructions(items);
+  const { items: clean, dropped: droppedItems } = sanitizeInstructions(items);
+  const { machine: cleanMachine, dropped: droppedMachine } = sanitizeMachine(machine);
   const { pdf, height, attempts } = await fitToOnePage(
-    (height) => renderToBytes(CardDocument({ items: clean, height, machine, variant })),
+    (height) =>
+      renderToBytes(CardDocument({ items: clean, height, machine: cleanMachine, variant })),
     guessCardHeight(clean, variant),
     tolerance,
   );
-  return { pdf, height, attempts, dropped };
+  return { pdf, height, attempts, dropped: mergeDropped(droppedItems, droppedMachine) };
 }
 
 /**
@@ -260,14 +269,15 @@ export async function renderPrint(
   machine: Machine,
   variant: Variant = "full",
 ): Promise<{ pdf: Uint8Array; dropped: string[] }> {
-  const { items: clean, dropped } = sanitizeInstructions(items);
+  const { items: clean, dropped: droppedItems } = sanitizeInstructions(items);
+  const { machine: cleanMachine, dropped: droppedMachine } = sanitizeMachine(machine);
   const pdf = await renderToBytes(
     PrintDocument({
       items: clean,
-      machine,
+      machine: cleanMachine,
       variant,
-      density: await fittingDensity(clean, machine, variant),
+      density: await fittingDensity(clean, cleanMachine, variant),
     }),
   );
-  return { pdf, dropped };
+  return { pdf, dropped: mergeDropped(droppedItems, droppedMachine) };
 }

@@ -49,14 +49,15 @@ export function ProgramDial({ program, size = 76 }: { program: string; size?: nu
         fill="none"
       />
       <G>
-        {washer.programs.map((name, position) => {
+        {washer.programs.map((_name, position) => {
           const angle = position * step;
           const selected = position === index;
           const inner = polar(centre, centre, selected ? knob + 1 : outer - 4.5, angle);
           const edge = polar(centre, centre, selected ? outer + 1.5 : outer, angle);
           return (
             <Line
-              key={name}
+              // biome-ignore lint/suspicious/noArrayIndexKey: dial ticks are a fixed set of positions, not reordered or filtered — and sanitized programme names can collide
+              key={position}
               x1={inner.x}
               y1={inner.y}
               x2={edge.x}
@@ -237,11 +238,12 @@ export function ChipRow({
         {label}
       </Text>
       <View style={{ flexDirection: "row", flexWrap: "wrap", flex: 1, gap: 2.5 }}>
-        {values.map((value) => {
+        {values.map((value, index) => {
           const on = selected.includes(value);
           return (
             <Text
-              key={value}
+              // biome-ignore lint/suspicious/noArrayIndexKey: chips are a fixed, unfiltered list straight off the machine file, and sanitized values can collide
+              key={index}
               style={{
                 fontFamily: on ? font.bold : font.sans,
                 fontSize: size,
