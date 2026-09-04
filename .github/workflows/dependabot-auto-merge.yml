@@ -19,6 +19,7 @@ jobs:
     # branch named to look like Dependabot's from reaching it.
     if: github.event.pull_request.user.login == 'dependabot[bot]'
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     permissions:
       contents: write
       pull-requests: write
