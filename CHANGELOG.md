@@ -1,3 +1,9 @@
+## [2.3.9](https://github.com/alrayyes/washy-washy-pdf/compare/v2.3.8...v2.3.9) (2026-09-09)
+
+### Bug Fixes
+
+* unblock Dependabot CI (audit + tokenless Codecov upload) ([#76](https://github.com/alrayyes/washy-washy-pdf/issues/76)) ([9462c80](https://github.com/alrayyes/washy-washy-pdf/commit/9462c8029c2287ac7835aa42b2885c8bf9a4429e)), closes [#75](https://github.com/alrayyes/washy-washy-pdf/issues/75)
+
 ## [2.3.8](https://github.com/alrayyes/washy-washy-pdf/compare/v2.3.7...v2.3.8) (2026-08-30)
 
 ### Bug Fixes
