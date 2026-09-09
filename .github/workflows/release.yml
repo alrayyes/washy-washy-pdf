@@ -90,7 +90,17 @@ jobs:
       # fresh CreationDate and /ID even when nothing about the drawing
       # changed. Re-shooting needs pdftoppm — poppler — which ubuntu-latest
       # doesn't carry.
-      - run: sudo apt-get update && sudo apt-get install -y poppler-utils
+      # ubuntu-latest ships a Google Chrome apt source preinstalled that this
+      # step never uses — poppler-utils comes from the main Ubuntu archive —
+      # but `apt-get update` still fails the whole command whenever that
+      # source's mirror serves a stale/mismatched index, which it does often
+      # enough to be the actual cause the one time this failed live (run
+      # 34384092214: "Hash Sum mismatch" on dl.google.com, unrelated to
+      # anything this job fetches). Drop it before updating instead of
+      # updating against a source nothing here needs.
+      - run: |
+          sudo rm -f /etc/apt/sources.list.d/google-chrome.list
+          sudo apt-get update && sudo apt-get install -y poppler-utils
         if: steps.token.outputs.present == 'true'
 
       - run: ./node_modules/.bin/semantic-release
