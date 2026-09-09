@@ -1,3 +1,10 @@
+## [2.3.10](https://github.com/alrayyes/washy-washy-pdf/compare/v2.3.9...v2.3.10) (2026-09-09)
+
+### Bug Fixes
+
+* **ci:** drop the preinstalled Chrome apt source before apt-get update ([#80](https://github.com/alrayyes/washy-washy-pdf/issues/80)) ([8c5846f](https://github.com/alrayyes/washy-washy-pdf/commit/8c5846fc239341f0cabf6dba032ac4e731ae5000)), closes [#79](https://github.com/alrayyes/washy-washy-pdf/issues/79)
+* **deps:** downgrade bun.lock to lockfileVersion 1 for Dependabot ([#77](https://github.com/alrayyes/washy-washy-pdf/issues/77)) ([7a0b654](https://github.com/alrayyes/washy-washy-pdf/commit/7a0b6548a77875f64e48364491bfca6c1e1ff2bf))
+
 ## [2.3.9](https://github.com/alrayyes/washy-washy-pdf/compare/v2.3.8...v2.3.9) (2026-09-09)
 
 ### Bug Fixes
