@@ -1,3 +1,9 @@
+## [2.3.11](https://github.com/alrayyes/washy-washy-pdf/compare/v2.3.10...v2.3.11) (2026-09-10)
+
+### Bug Fixes
+
+* **ci:** correct report-type to report_type ([#83](https://github.com/alrayyes/washy-washy-pdf/issues/83)) ([c619cb9](https://github.com/alrayyes/washy-washy-pdf/commit/c619cb9ecce4cce49a0b868df5d0aa964b8254e2))
+
 ## [2.3.10](https://github.com/alrayyes/washy-washy-pdf/compare/v2.3.9...v2.3.10) (2026-09-09)
 
 ### Bug Fixes
