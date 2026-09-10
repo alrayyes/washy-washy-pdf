@@ -44,7 +44,9 @@ jobs:
         run: |
           npm pack --dry-run 2>&1 | tee /tmp/pack.log
           ! grep -qE '(^|/)(src|test)/' /tmp/pack.log
-      - run: bun test --coverage --coverage-reporter=lcov
+      # --reporter=junit feeds Codecov Test Analytics below - bun's own
+      # test runner, no separate framework needed.
+      - run: bun test --coverage --coverage-reporter=lcov --reporter=junit --reporter-outfile=junit.xml
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
         with:
@@ -59,6 +61,18 @@ jobs:
           # would fail every Dependabot PR's CI on that basis alone
           # (confirmed live on this repo's own PR #75, same pattern as
           # hush-hush-php's PRs #13/#14).
+          fail_ci_if_error: false
+      # Test Analytics: per-test failure/flake detail, not just a coverage
+      # delta. !cancelled(), not the step default - this still runs when
+      # `bun test` above failed (junit.xml exists either way), but not if
+      # the whole run was cancelled out from under it.
+      - name: Upload test results to Codecov
+        if: ${{ !cancelled() }}
+        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          report-type: test_results
+          files: junit.xml
           fail_ci_if_error: false
 
   # The commit-msg hook already reads every message, but a hook is skippable and
