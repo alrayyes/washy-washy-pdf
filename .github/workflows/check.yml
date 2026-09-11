@@ -116,6 +116,23 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294 # v5.0.0
 
+  # Cross-file taint tracking Biome's pattern-level lint doesn't do — see
+  # rules/javascript.md's "Security" section. Against the free Semgrep
+  # Registry ruleset, no paid tier needed. A real local run and triage on
+  # 2026-09-11 came back clean against this exact config (washy-washy-pdf#88):
+  # one release.yml finding, suppressed inline with reasoning, everything
+  # else genuinely nothing.
+  semgrep:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - run: pip install semgrep==1.177.0
+      - run: |
+          semgrep scan --error \
+            --config p/default --config p/typescript --config p/react --config p/security-audit \
+            --exclude 'dist/**' --exclude 'node_modules/**' --exclude 'coverage/**'
+
   # Prose gets its own two jobs rather than a line in the one above, so that
   # when the run goes red the job name says which tier failed: a grammar error
   # is a mistake and a style alert is an opinion, answered differently.
