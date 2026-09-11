@@ -6,7 +6,7 @@
       "name": "@washy-washy/pdf",
       "dependencies": {
         "@react-pdf/renderer": "4.6.1",
-        "@washy-washy/core": "1.4.0",
+        "@washy-washy/core": "1.5.0",
         "pdf-lib": "1.17.1",
         "react": "19.2.8",
       },
@@ -272,7 +272,7 @@
 
     "@types/unist": ["@types/unist@2.0.11", "", {}, "sha512-CmBKiL6NNo/OqgmMn95Fk9Whlp2mtvIv+KNpQKN2F4SjvrEesubTRWGYSg+BnWZOnlCaSTU1sMpsBOzgbYhnsA=="],
 
-    "@washy-washy/core": ["@washy-washy/core@1.4.0", "", { "dependencies": { "csv-parse": "7.0.2" } }, "sha512-aCSyvOR2Mt6R4yUgopIaS0yNFmeP5Ow0uOjNTQRo2k26SbyO6wPF5/c59eac+ehJqecfcBP6TeFi+bqjgSIbsQ=="],
+    "@washy-washy/core": ["@washy-washy/core@1.5.0", "", { "dependencies": { "csv-parse": "7.0.2" } }, "sha512-5/sZqWHxwteAKqkzex1AjdfIRLTJItmXMd3reWaPdgXTA9geb56ExMSJ1kVtS4gh2Xd8w9NOMiVBYZe3R8ibCw=="],
 
     "@yuku-codegen/binding-android-arm64": ["@yuku-codegen/binding-android-arm64@0.8.7", "", { "os": "android", "cpu": "arm64" }, "sha512-C/0zV5IhgVdYhGJTwrY0v8dknxlhiKwtVJkMUaexu9/QvRmzlV4vfU3hZlUSgqc2BxQHntL1mCVbDq8j0FRFDw=="],
 
