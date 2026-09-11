@@ -1,3 +1,9 @@
+## [2.4.1](https://github.com/alrayyes/washy-washy-pdf/compare/v2.4.0...v2.4.1) (2026-09-11)
+
+### Bug Fixes
+
+* **templates:** use GitHub's standard labels, not the Forgejo kind/ scheme ([#90](https://github.com/alrayyes/washy-washy-pdf/issues/90)) ([7a84a83](https://github.com/alrayyes/washy-washy-pdf/commit/7a84a833ca12c229ae083e17176f0f0f3fcb455e)), closes [#84](https://github.com/alrayyes/washy-washy-pdf/issues/84)
+
 ## [2.4.0](https://github.com/alrayyes/washy-washy-pdf/compare/v2.3.12...v2.4.0) (2026-09-11)
 
 ### Features
