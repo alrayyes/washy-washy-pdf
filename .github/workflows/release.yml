@@ -54,7 +54,14 @@ jobs:
         env:
           RELEASE_TOKEN: ${{ secrets.RELEASE_TOKEN }}
 
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      # This workflow_run only fires for a check run whose head_branch is
+      # main (the `branches: [main]` filter above) — that's a push-triggered
+      # run of an already-merged commit, never a pull_request-triggered run
+      # from a fork (whose head_branch is the PR's own branch, not main).
+      # head_sha here is always a commit already on main, not untrusted PR
+      # code. Confirmed via a real local `semgrep scan --config p/default`
+      # run and triage on 2026-09-11 (washy-washy-pdf#88).
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1 nosemgrep: yaml.github-actions.security.workflow-run-target-code-checkout.workflow-run-target-code-checkout
         if: steps.token.outputs.present == 'true'
         with:
           token: ${{ secrets.RELEASE_TOKEN }}
