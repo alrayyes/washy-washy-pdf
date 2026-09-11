@@ -35,8 +35,9 @@ jobs:
       - run: bun run lint:md
       - run: bun run lint:yaml
       - run: bun run lint:package-json
-      - run: bun run typecheck
       - run: bun run build
+      - run: bun run typecheck
+      - run: bun run lint:types-doc
       # A broken `files`/`exports` entry surfaces here rather than at
       # semantic-release publish time. See washy-washy-core#1's identical
       # acceptance criterion.
