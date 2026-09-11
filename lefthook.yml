@@ -69,7 +69,18 @@ pre-push:
       run: bun run lint:package-json
     - name: vale
       run: bun run lint:prose
-    - name: typecheck
-      run: bun run typecheck
+    # tsd checks test/index.test-d.ts against dist/index.d.ts, and typecheck's
+    # own tsc run resolves that same import — both need a build first, so
+    # this is piped rather than parallel with the jobs above.
+    - name: types
+      group:
+        piped: true
+        jobs:
+          - name: build
+            run: bun run build
+          - name: typecheck
+            run: bun run typecheck
+          - name: types-doc
+            run: bun run lint:types-doc
     - name: test
       run: bun test
