@@ -18,7 +18,7 @@ layout-fitting logic that measures each one until it lands on exactly one
 page. This is the rendering half of [washy-washy-cli](https://github.com/alrayyes/washy-washy-cli),
 split out so it can be depended on without the CLI's Bun-specific tooling.
 The data half — chart parsing, mixing rules, machine validation — is its
-sibling package, [`@washy-washy/core`](https://github.com/alrayyes/washy-washy-sdk).
+sibling package, [`@washy-washy/core`](https://github.com/alrayyes/washy-washy-core).
 
 | The phone sheet, from the top                                                                                                                                                   | A card from the printable set                                                                                                                                                                                 |
 | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -53,7 +53,7 @@ fails if the two ever fall out of step.
 ## Requirements
 
 - [Bun](https://bun.sh) or Node, with React 19 available.
-- A [`Machine`](https://github.com/alrayyes/washy-washy-sdk) describing the
+- A [`Machine`](https://github.com/alrayyes/washy-washy-core) describing the
   washer and iron the chart is drawn for — this package draws nothing without
   one.
 

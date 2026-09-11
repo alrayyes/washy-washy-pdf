@@ -38,7 +38,7 @@ jobs:
       - run: bun run typecheck
       - run: bun run build
       # A broken `files`/`exports` entry surfaces here rather than at
-      # semantic-release publish time. See washy-washy-sdk#1's identical
+      # semantic-release publish time. See washy-washy-core#1's identical
       # acceptance criterion.
       - name: Confirm the published tarball only carries dist, README, LICENSE
         run: |
