@@ -1,3 +1,14 @@
+## [2.4.0](https://github.com/alrayyes/washy-washy-pdf/compare/v2.3.12...v2.4.0) (2026-09-11)
+
+### Features
+
+* **test:** add a tsd type-checked usage-example test for the public API ([#99](https://github.com/alrayyes/washy-washy-pdf/issues/99)) ([4b210cf](https://github.com/alrayyes/washy-washy-pdf/commit/4b210cff5496988cb8682e07d32aa0561e27cf8d)), closes [#87](https://github.com/alrayyes/washy-washy-pdf/issues/87)
+
+### Bug Fixes
+
+* **deps:** bump @react-pdf/renderer from 4.6.1 to 4.9.0 ([e051e82](https://github.com/alrayyes/washy-washy-pdf/commit/e051e82494a74615b74a88503bb429bc759240cc))
+* **deps:** bump @washy-washy/core from 1.4.0 to 1.5.0 ([9ee8407](https://github.com/alrayyes/washy-washy-pdf/commit/9ee84071719b026989fbc852797eca7f1daff0f4))
+
 ## [2.3.12](https://github.com/alrayyes/washy-washy-pdf/compare/v2.3.11...v2.3.12) (2026-09-11)
 
 ### Bug Fixes
