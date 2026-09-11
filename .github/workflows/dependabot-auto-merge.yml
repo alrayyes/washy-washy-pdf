@@ -6,17 +6,23 @@
 # away is the click. Everything else still goes through a human.
 name: dependabot auto-merge
 
-on: pull_request_target
+# pull_request, not pull_request_target: Dependabot's pull requests come from
+# a branch on this repo, never a fork, so there's no untrusted checkout to
+# guard against, and pull_request_target would trade away the elevated
+# GITHUB_TOKEN permissions GitHub grants a bot-actor'd pull_request event for
+# nothing. This job never checks out or executes the pull request's code
+# either way — it runs `gh` commands only.
+on: pull_request
 
 permissions:
   contents: read
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
 jobs:
   auto-merge:
-    # pull_request_target runs with write access against the base repository,
-    # so it must never check out or execute the pull request's code. This job
-    # runs one gh command and nothing else. The actor check is what stops a
-    # branch named to look like Dependabot's from reaching it.
     if: github.event.pull_request.user.login == 'dependabot[bot]'
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -24,14 +30,25 @@ jobs:
       contents: write
       pull-requests: write
     steps:
+      - name: Dependabot metadata
+        id: metadata
+        uses: dependabot/fetch-metadata@25dd0e34f4fe68f24cc83900b1fe3fe149efef98 # v3.1.0
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
       # Squashed with a subject commitlint accepts. Dependabot writes "Bump x
       # from a to b" and config-conventional refuses the capital B, so the
       # commit that reaches main is retitled here rather than the rule being
       # relaxed for everyone else.
       #
-      # --auto is the whole safety story: it holds the pull request until the
-      # required checks on main have passed.
+      # Patch and minor only — a major stays a pull request someone reads,
+      # the same as any other breaking change would. --auto is the rest of
+      # the safety story: it holds the pull request until the required
+      # checks on main have passed.
       - name: Wave it through once the checks are green
+        if: |
+          steps.metadata.outputs.update-type == 'version-update:semver-patch' ||
+          steps.metadata.outputs.update-type == 'version-update:semver-minor'
         run: |
           subject=$(printf '%s' "$PR_TITLE" | sed -E 's/^([a-z]+(\([^)]*\))?: )([A-Z])/\1\l\3/')
           gh pr merge --auto --squash --subject "$subject" "$PR_URL"
