@@ -14,12 +14,13 @@
       "default": "./dist/index.js"
     }
   },
+  "types": "./dist/index.d.ts",
   "files": [
     "dist"
   ],
   "scripts": {
     "build": "tsdown",
-    "check": "bun run lint && bun run lint:md && bun run lint:yaml && bun run lint:package-json && bun run lint:prose && bun run typecheck && bun test",
+    "check": "bun run lint && bun run lint:md && bun run lint:yaml && bun run lint:package-json && bun run lint:prose && bun run build && bun run typecheck && bun run lint:types-doc && bun test",
     "docs": "typedoc",
     "examples": "bun run scripts/examples.ts",
     "format": "prettier --write .",
@@ -29,6 +30,7 @@
     "lint:package-json": "sort-package-json --check package.json",
     "lint:prose": ".tools/vale --glob='!{styles/**,CHANGELOG.md}' --minAlertLevel=error .",
     "lint:prose:advice": ".tools/vale --glob='!{styles/**,CHANGELOG.md}' .",
+    "lint:types-doc": "tsd --files \"test/*.test-d.ts\"",
     "lint:yaml": "prettier --check \"**/*.{yml,yaml}\"",
     "prepack": "bun run build",
     "prepare": "lefthook install",
@@ -61,6 +63,7 @@
     "prettier": "3.9.6",
     "semantic-release": "25.0.9",
     "sort-package-json": "4.0.0",
+    "tsd": "0.33.0",
     "tsdown": "0.23.0",
     "typedoc": "0.28.20",
     "typescript": "5.9.3"
@@ -70,5 +73,10 @@
   },
   "trustedDependencies": [
     "lefthook"
-  ]
+  ],
+  "tsd": {
+    "compilerOptions": {
+      "module": "nodenext"
+    }
+  }
 }
