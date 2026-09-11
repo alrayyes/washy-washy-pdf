@@ -1,3 +1,9 @@
+## [2.3.12](https://github.com/alrayyes/washy-washy-pdf/compare/v2.3.11...v2.3.12) (2026-09-11)
+
+### Bug Fixes
+
+* **deps:** align Dependabot automation with the account-wide reference pattern ([#92](https://github.com/alrayyes/washy-washy-pdf/issues/92)) ([e0995a0](https://github.com/alrayyes/washy-washy-pdf/commit/e0995a0d148c772f3f6a35945320a41bd0ec33c4)), closes [#86](https://github.com/alrayyes/washy-washy-pdf/issues/86)
+
 ## [2.3.11](https://github.com/alrayyes/washy-washy-pdf/compare/v2.3.10...v2.3.11) (2026-09-10)
 
 ### Bug Fixes
