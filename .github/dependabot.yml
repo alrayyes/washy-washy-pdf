@@ -10,6 +10,11 @@ updates:
     schedule:
       interval: weekly
     open-pull-requests-limit: 10
+    # A newly-published version gets a week to prove itself before
+    # Dependabot proposes it — a supply-chain compromise is usually caught
+    # or yanked well inside that window.
+    cooldown:
+      default-days: 7
     commit-message:
       # commitlint gates every commit that lands, and Dependabot's default
       # subject is not a Conventional Commit. chore: is right for a dev
@@ -39,12 +44,24 @@ updates:
           - prettier
           - markdownlint-cli2
           - lefthook
+      # Grouping (even a group of one) keeps a major bump on Dependabot's
+      # lowercase group-title template instead of falling back to its
+      # sentence-case single-update one — see rules/releases.md.
+      bun-major:
+        patterns: ["*"]
+        update-types: [major]
 
   - package-ecosystem: github-actions
     directory: /
     schedule:
       interval: weekly
+    cooldown:
+      default-days: 7
     # Changes the pipeline, not the artifact — releasing for this is noise.
     commit-message:
       prefix: ci
       include: scope
+    groups:
+      actions-major:
+        patterns: ["*"]
+        update-types: [major]
