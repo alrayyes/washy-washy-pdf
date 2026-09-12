@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { resolve } from "@washy-washy/core/browser";
-import { crossedOutRing } from "../src/components";
+import { crossedOutRing, dialPointer, dialStep } from "../src/components";
 import { renderCard, renderPrint } from "../src/render";
 import { MACHINE, pile } from "./fixtures";
 import { pageText } from "./pdf-text";
@@ -58,6 +58,52 @@ describe("Prose", () => {
     const text = (await pageText((await renderCard(items, MACHINE, "full")).pdf)).join("\n");
 
     expect(text).toContain("Dirty Labs");
+  });
+});
+
+describe("dialStep", () => {
+  test("is the angle between two adjacent programme positions", () => {
+    expect(dialStep(5)).toBe(72);
+    expect(dialStep(4)).toBe(90);
+  });
+
+  test("is undefined rather than Infinity when there are no programmes to step between", () => {
+    expect(dialStep(0)).toBeUndefined();
+  });
+});
+
+describe("dialPointer", () => {
+  test("sits at index * step degrees around the centre, knob - 1.5 out", () => {
+    const centre = 38;
+    const knob = 15;
+    const radius = knob - 1.5;
+
+    const pointer = dialPointer(centre, knob, 2, 72);
+
+    const radians = ((2 * 72 - 90) * Math.PI) / 180;
+    expect(pointer.x).toBe(centre + radius * Math.cos(radians));
+    expect(pointer.y).toBe(centre + radius * Math.sin(radians));
+  });
+
+  test("sits at twelve o'clock, straight up from the centre, at index 0", () => {
+    const centre = 38;
+    const knob = 15;
+
+    const pointer = dialPointer(centre, knob, 0, 72);
+
+    expect(pointer.x).toBe(centre);
+    expect(pointer.y).toBe(centre - (knob - 1.5));
+  });
+});
+
+describe("ProgramDial", () => {
+  test("a machine with no programmes renders a card instead of crashing on NaN geometry", async () => {
+    const machine = { ...MACHINE, washer: { ...MACHINE.washer, programs: [] } };
+    const items = resolve([pile(1)]);
+
+    const text = (await pageText((await renderCard(items, machine, "full")).pdf)).join("\n");
+
+    expect(text).toContain("clockwise from");
   });
 });
 

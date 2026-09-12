@@ -38,9 +38,33 @@ export function crossedOutRing(centre: number, outer: number) {
 }
 
 /**
+ * The angle between two adjacent programme positions — `undefined` rather
+ * than the `Infinity` a bare `360 / 0` would give, so a caller can tell
+ * "nothing to step between" apart from a real angle instead of having a
+ * non-finite number silently reach an SVG's coordinates.
+ */
+export function dialStep(programCount: number): number | undefined {
+  return programCount > 0 ? 360 / programCount : undefined;
+}
+
+/**
+ * Where `ProgramDial`'s pointer line ends — pulled out on its own so a test
+ * can pin the exact coordinates directly, the same reason `crossedOutRing`
+ * is its own function below.
+ */
+export function dialPointer(centre: number, knob: number, index: number, step: number) {
+  return polar(centre, centre, knob - 1.5, index * step);
+}
+
+/**
  * The programme dial, drawn to scale: one tick per position on the real fascia,
  * in the real order, with the pointer on the one you want. The machine file's
  * first programme sits at twelve o'clock exactly as it does on the machine.
+ *
+ * A real machine file always has at least two programmes (`@washy-washy/core`'s
+ * `parseMachine` rejects fewer), but a test fixture can still hand this a
+ * machine with none — drawn as a bare knob rather than crashing on the
+ * geometry a zero-programme dial has no angles for.
  */
 export function ProgramDial({ program, size = 76 }: { program: string; size?: number }) {
   const { washer } = useMachine();
@@ -48,7 +72,7 @@ export function ProgramDial({ program, size = 76 }: { program: string; size?: nu
   const outer = centre - 3;
   const knob = outer * 0.45;
   const index = Math.max(0, washer.programs.indexOf(program));
-  const step = 360 / washer.programs.length;
+  const step = dialStep(washer.programs.length);
 
   return (
     // An Svg carries no intrinsic height in the layout, so without the style
@@ -59,33 +83,37 @@ export function ProgramDial({ program, size = 76 }: { program: string; size?: nu
       viewBox={`0 0 ${size} ${size}`}
       style={{ width: size, height: size }}
     >
-      {/* The red arc printed on the fascia, running clockwise from the off position. */}
-      <Path
-        d={arc(centre, centre, outer, step * 0.6, 360 - step * 0.6)}
-        stroke={colour.accent}
-        strokeWidth={0.8}
-        fill="none"
-      />
-      <G>
-        {washer.programs.map((_name, position) => {
-          const angle = position * step;
-          const selected = position === index;
-          const inner = polar(centre, centre, selected ? knob + 1 : outer - 4.5, angle);
-          const edge = polar(centre, centre, selected ? outer + 1.5 : outer, angle);
-          return (
-            <Line
-              // biome-ignore lint/suspicious/noArrayIndexKey: dial ticks are a fixed set of positions, not reordered or filtered — and sanitized programme names can collide
-              key={position}
-              x1={inner.x}
-              y1={inner.y}
-              x2={edge.x}
-              y2={edge.y}
-              stroke={selected ? colour.accent : colour.faint}
-              strokeWidth={selected ? 2 : 0.7}
-            />
-          );
-        })}
-      </G>
+      {step !== undefined && (
+        <>
+          {/* The red arc printed on the fascia, running clockwise from the off position. */}
+          <Path
+            d={arc(centre, centre, outer, step * 0.6, 360 - step * 0.6)}
+            stroke={colour.accent}
+            strokeWidth={0.8}
+            fill="none"
+          />
+          <G>
+            {washer.programs.map((_name, position) => {
+              const angle = position * step;
+              const selected = position === index;
+              const inner = polar(centre, centre, selected ? knob + 1 : outer - 4.5, angle);
+              const edge = polar(centre, centre, selected ? outer + 1.5 : outer, angle);
+              return (
+                <Line
+                  // biome-ignore lint/suspicious/noArrayIndexKey: dial ticks are a fixed set of positions, not reordered or filtered — and sanitized programme names can collide
+                  key={position}
+                  x1={inner.x}
+                  y1={inner.y}
+                  x2={edge.x}
+                  y2={edge.y}
+                  stroke={selected ? colour.accent : colour.faint}
+                  strokeWidth={selected ? 2 : 0.7}
+                />
+              );
+            })}
+          </G>
+        </>
+      )}
       <Circle
         cx={centre}
         cy={centre}
@@ -94,14 +122,16 @@ export function ProgramDial({ program, size = 76 }: { program: string; size?: nu
         stroke={colour.line}
         strokeWidth={0.8}
       />
-      <Line
-        x1={centre}
-        y1={centre}
-        x2={polar(centre, centre, knob - 1.5, index * step).x}
-        y2={polar(centre, centre, knob - 1.5, index * step).y}
-        stroke={colour.accent}
-        strokeWidth={2}
-      />
+      {step !== undefined && (
+        <Line
+          x1={centre}
+          y1={centre}
+          x2={dialPointer(centre, knob, index, step).x}
+          y2={dialPointer(centre, knob, index, step).y}
+          stroke={colour.accent}
+          strokeWidth={2}
+        />
+      )}
       <Circle cx={centre} cy={centre} r={1.6} fill={colour.accent} />
     </Svg>
   );
@@ -288,11 +318,6 @@ export function ChipRow({
 export function ControlPanel({ item, dialSize = 76 }: { item: Instruction; dialSize?: number }) {
   const { washer } = useMachine();
   const position = washer.programs.indexOf(item.program);
-  // Stryker disable next-line StringLiteral: only reachable with an empty
-  // washer.programs — and ProgramDial (rendered right below) divides by
-  // programs.length unguarded, so an empty list already crashes the render
-  // before this fallback's own text could ever be observed. Tracked as its
-  // own bug rather than fixed here: washy-washy-pdf#103.
   const off = washer.programs[0] ?? "";
 
   return (
