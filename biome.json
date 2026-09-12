@@ -8,7 +8,9 @@
       "!docs-site",
       "!**/test-results",
       "!styles/Google",
-      "!styles/proselint"
+      "!styles/proselint",
+      "!reports",
+      "!.stryker-tmp"
     ]
   },
   "formatter": {

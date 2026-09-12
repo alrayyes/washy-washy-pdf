@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { resolve, variants } from "@washy-washy/core/browser";
+import { pageInk } from "../scripts/screenshots";
 import { summaryColumns, TABLE_WIDTH_BUDGET } from "../src/documents";
 import { renderPrint } from "../src/render";
 import { MACHINE, pile } from "./fixtures";
@@ -138,5 +139,25 @@ describe("Card wash/iron section order", () => {
 
     expect(cardText).toContain("WASH");
     expect(cardText).not.toContain("IRON");
+  });
+});
+
+describe("Legend", () => {
+  // The iron-variant legend's caption reads "the red pointer is where to
+  // turn it" — it always illustrates the pointer state, never the
+  // crossed-out ring, so its own dial is off={false} unconditionally. No
+  // surrounding text distinguishes the two (unlike a real pile's card,
+  // where an "off" dial pairs with "Do not iron"), so this pins the
+  // reference sheet's first page — the one the legend is on — by its
+  // content-stream hash (`pageInk`, the same drift guard
+  // `scripts/screenshots.ts` uses for the README shots) rather than by
+  // reading text. Confirmed empirically to change (6382 vs 6318 bytes for
+  // this exact fixture) if `off` were flipped to `true`. Recompute this
+  // hash only when the legend's own drawing deliberately changes.
+  test("the iron-variant example dial reads as the pointer state, not crossed-out", async () => {
+    const items = resolve([pile(1)]);
+    const { pdf } = await renderPrint(items, MACHINE, "iron");
+
+    expect(await pageInk(pdf, 1)).toBe("5458597462f7f323");
   });
 });

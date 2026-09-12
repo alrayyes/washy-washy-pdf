@@ -76,6 +76,36 @@ jobs:
           files: junit.xml
           fail_ci_if_error: false
 
+  # A green `bun test` only proves the existing assertions still pass, not
+  # that they'd catch a real change to the code under test. Scoped to this
+  # PR's own changed src/**/*.ts(x) lines (rules/testing.md's "new/changed
+  # code only" mutation-testing gate), not the whole tree: documents.tsx
+  # carries real, tracked inherited debt (washy-washy-pdf#101) this gate
+  # doesn't retroactively demand fixed. `thresholds.break: 100` in
+  # stryker.config.mjs still applies in full to whatever's in scope — a
+  # single surviving mutant in a PR's own changed lines still fails this
+  # job. Pull-request only: there's no base to diff against on a push.
+  mutation:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version: 1.4.0
+      - run: bun install --frozen-lockfile
+      - name: Scope mutation testing to this PR's changed src lines
+        id: scope
+        run: |
+          RANGES=$(bun run scripts/mutation-scope.ts "${{ github.event.pull_request.base.sha }}")
+          echo "ranges=$RANGES" >> "$GITHUB_OUTPUT"
+      - name: Run Stryker against the changed ranges
+        if: steps.scope.outputs.ranges != ''
+        run: bunx stryker run --mutate "${{ steps.scope.outputs.ranges }}"
+
   # The commit-msg hook already reads every message, but a hook is skippable and
   # these messages are load-bearing: semantic-release reads the Conventional
   # Commits that landed to decide the next version, so a stray "wip" is a
