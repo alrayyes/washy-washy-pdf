@@ -19,6 +19,24 @@ function arc(cx: number, cy: number, radius: number, from: number, to: number): 
   return `M ${start.x} ${start.y} A ${radius} ${radius} 0 ${largeArc} 1 ${end.x} ${end.y}`;
 }
 
+/** How far inside `outer` the crossed-out ring (`IronDial`'s `off` state) sits. */
+const CROSSED_OUT_INSET = 6;
+
+/**
+ * The crossed-out ring's own geometry — the circle `IronDial` draws in place
+ * of the pointer when `off` is true, plus the diagonal line across it.
+ * Pulled out on its own so a test can pin the exact numbers directly,
+ * without needing to inspect a rendered PDF's raw drawing operators.
+ */
+export function crossedOutRing(centre: number, outer: number) {
+  const radius = outer - CROSSED_OUT_INSET;
+  return {
+    radius,
+    from: polar(centre, centre, radius, 225),
+    to: polar(centre, centre, radius, 45),
+  };
+}
+
 /**
  * The programme dial, drawn to scale: one tick per position on the real fascia,
  * in the real order, with the pointer on the one you want. The machine file's
@@ -95,12 +113,12 @@ export function ProgramDial({ program, size = 76 }: { program: string; size?: nu
  */
 export function IronDial({
   setting,
-  off = false,
+  off,
   size = 76,
 }: {
   setting: string;
   /** Draw the crossed-out ring instead of a pointer. */
-  off?: boolean;
+  off: boolean;
   size?: number;
 }) {
   const machine = useMachine();
@@ -120,6 +138,7 @@ export function IronDial({
   const pointer = polar(centre, centre, knob - 1.5, angleOf(index));
   const steamFrom = settings.findIndex((entry) => entry.steam);
   const steamTo = settings.reduce((last, entry, at) => (entry.steam ? at : last), -1);
+  const ring = crossedOutRing(centre, outer);
 
   return (
     // An Svg carries no intrinsic height in the layout, so without the style
@@ -177,16 +196,16 @@ export function IronDial({
           <Circle
             cx={centre}
             cy={centre}
-            r={outer - 6}
+            r={ring.radius}
             stroke={colour.no}
             strokeWidth={1.6}
             fill="none"
           />
           <Line
-            x1={polar(centre, centre, outer - 6, 225).x}
-            y1={polar(centre, centre, outer - 6, 225).y}
-            x2={polar(centre, centre, outer - 6, 45).x}
-            y2={polar(centre, centre, outer - 6, 45).y}
+            x1={ring.from.x}
+            y1={ring.from.y}
+            x2={ring.to.x}
+            y2={ring.to.y}
             stroke={colour.no}
             strokeWidth={1.6}
           />
@@ -269,6 +288,11 @@ export function ChipRow({
 export function ControlPanel({ item, dialSize = 76 }: { item: Instruction; dialSize?: number }) {
   const { washer } = useMachine();
   const position = washer.programs.indexOf(item.program);
+  // Stryker disable next-line StringLiteral: only reachable with an empty
+  // washer.programs — and ProgramDial (rendered right below) divides by
+  // programs.length unguarded, so an empty list already crashes the render
+  // before this fallback's own text could ever be observed. Tracked as its
+  // own bug rather than fixed here: washy-washy-pdf#103.
   const off = washer.programs[0] ?? "";
 
   return (
@@ -404,6 +428,14 @@ function Prose({
   // An empty Text still costs a line's height, which is a gap nobody asked
   // for — but a trailing element (a citation with nothing to caption, an
   // edge case in practice) still needs to render.
+  //
+  // Stryker disable next-line LogicalOperator: SplitField (the only caller
+  // that ever passes a truthy `trailing`) carries this exact same
+  // all-empty check itself and returns before ever calling Prose — so
+  // `trailing` here is always undefined in practice, and `?? null` versus
+  // `&& null` render identically (both "nothing"). Kept anyway as a real
+  // guard for a future caller that passes `trailing` without SplitField's
+  // own check.
   if (values.every((value) => value === "")) return trailing ?? null;
 
   const protectRow = (fromEnd: number) =>
@@ -414,6 +446,10 @@ function Prose({
   if (values.every((value) => value === values[0])) {
     if (!trailing) return <Text style={style}>{values[0]}</Text>;
     return (
+      // Stryker disable next-line ObjectLiteral: this branch (a `trailing`
+      // element alongside identical values) is only ever reached through
+      // SplitField, which never passes a non-zero marginTop — so
+      // `{ marginTop }` and `{}` render identically on every real call path.
       <View style={{ marginTop }}>
         <Text style={{ ...style, marginTop: 0 }} {...protectRow(1)}>
           {values[0]}
@@ -489,11 +525,11 @@ export function SplitField({
 export function Field({
   label,
   value,
-  emphasis = false,
+  emphasis,
 }: {
   label: string;
   value: string;
-  emphasis?: boolean;
+  emphasis: boolean;
 }) {
   return (
     <View style={{ marginTop: space.sm2 }}>
