@@ -324,6 +324,39 @@ function ReferenceCredit({ items }: { items: ResolvedInstruction[] }) {
 }
 
 /**
+ * The "Wash together with" field's text — who else may share this card's
+ * drum, in whichever of four shapes fits the group's size and whether every
+ * member can mix with every other.
+ *
+ * Exported and pulled out of `Card` so a test can hit every branch (a lone
+ * pile with/without other compatible piles on the chart, a group that can
+ * all share a drum, a group that shares settings but can't) directly,
+ * rather than needing a full chart and render per case.
+ */
+export function washTogetherText(group: ResolvedInstruction[]): string {
+  const item = group[0] as ResolvedInstruction;
+  const names = new Set(group.map((member) => member.clothingType));
+  // Identical settings do not guarantee they may share a drum — the colour and
+  // lint rules are separate — so ask rather than assume.
+  const together = group.every((a) => group.every((b) => a === b || canMix(a, b)));
+  // Only piles that suit every member of the card, not just the first one.
+  const alsoWith = item.mixesWith.filter(
+    (name) => !names.has(name) && group.every((member) => member.mixesWith.includes(name)),
+  );
+
+  if (group.length > 1 && together) {
+    return `each other${alsoWith.length > 0 ? `, and ${alsoWith.join(", ")}` : ""}`;
+  }
+  if (group.length > 1) {
+    return "same settings, but wash these separately — see the matrix";
+  }
+  if (alsoWith.length > 0) {
+    return alsoWith.join(", ");
+  }
+  return "nothing else — wash alone";
+}
+
+/**
  * One card, top to bottom: what it is, how the machine goes, iron, dry.
  *
  * `group` is usually a single pile. Where several piles are set up identically
@@ -346,14 +379,6 @@ function Card({
 }) {
   const item = group[0] as ResolvedInstruction;
   const heading = group.map((member) => member.clothingType).join(" + ");
-  const names = new Set(group.map((member) => member.clothingType));
-  // Identical settings do not guarantee they may share a drum — the colour and
-  // lint rules are separate — so ask rather than assume.
-  const together = group.every((a) => group.every((b) => a === b || canMix(a, b)));
-  // Only piles that suit every member of the card, not just the first one.
-  const alsoWith = item.mixesWith.filter(
-    (name) => !names.has(name) && group.every((member) => member.mixesWith.includes(name)),
-  );
 
   return (
     <View
@@ -407,19 +432,7 @@ function Card({
       <ControlPanel item={item} dialSize={compact ? 68 : 78} />
 
       <SplitField label="Detergent" items={group} pick={(member) => member.detergent} />
-      <Field
-        label="Wash together with"
-        value={
-          group.length > 1 && together
-            ? `each other${alsoWith.length > 0 ? `, and ${alsoWith.join(", ")}` : ""}`
-            : group.length > 1
-              ? "same settings, but wash these separately — see the matrix"
-              : alsoWith.length > 0
-                ? alsoWith.join(", ")
-                : "nothing else — wash alone"
-        }
-        emphasis
-      />
+      <Field label="Wash together with" value={washTogetherText(group)} emphasis />
       <SplitField label="Drying" items={group} pick={(member) => member.drying} />
 
       {variant !== "wash" && (

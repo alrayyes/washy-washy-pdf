@@ -9,6 +9,7 @@ import {
   sheetGroups,
   summaryColumns,
   TABLE_WIDTH_BUDGET,
+  washTogetherText,
 } from "../src/documents";
 import { renderPrint } from "../src/render";
 import { MACHINE, pile } from "./fixtures";
@@ -67,6 +68,59 @@ describe("Card temperature", () => {
     const text = (await pageText((await renderPrint(items, MACHINE)).pdf)).join("\n");
 
     expect(text).toContain("Cottons 60 °C ·");
+  });
+});
+
+describe("washTogetherText", () => {
+  test("a lone pile with nothing else on the chart washes alone", () => {
+    const items = resolve([pile(1)]);
+    expect(washTogetherText(items)).toBe("nothing else — wash alone");
+  });
+
+  test("a lone pile lists every other chart pile it may share a drum with, comma-separated", () => {
+    const items = resolve([
+      pile(1),
+      pile(2, { clothingType: "Pile 2" }),
+      pile(3, { clothingType: "Pile 3" }),
+    ]);
+    expect(washTogetherText(items.slice(0, 1))).toBe("Pile 2, Pile 3");
+  });
+
+  test("a group that can all share a drum reads 'each other'", () => {
+    const items = resolve([pile(1), pile(2, { clothingType: "Pile 2" })]);
+    expect(washTogetherText(items)).toBe("each other");
+  });
+
+  test("a group that can share a drum also lists other chart piles it may join, comma-separated", () => {
+    const items = resolve([
+      pile(1),
+      pile(2, { clothingType: "Pile 2" }),
+      pile(3, { clothingType: "Pile 3" }),
+      pile(4, { clothingType: "Pile 4" }),
+    ]);
+    expect(washTogetherText(items.slice(0, 2))).toBe("each other, and Pile 3, Pile 4");
+  });
+
+  test("only lists a chart pile that suits every member of the group, not just one", () => {
+    // Pile 1 is colour-group "any" (mixes with everything settings-compatible);
+    // Pile 2 is "white"; Pile 3 is "dark" — compatible with Pile 1 alone, so it
+    // must not appear even though one of the two group members would take it.
+    const items = resolve([
+      pile(1, { colourGroup: "any" }),
+      pile(2, { clothingType: "Pile 2", colourGroup: "white" }),
+      pile(3, { clothingType: "Pile 3", colourGroup: "dark" }),
+    ]);
+    expect(washTogetherText(items.slice(0, 2))).toBe("each other");
+  });
+
+  test("same settings but incompatible colours can't share a drum despite matching everything else", () => {
+    const items = resolve([
+      pile(1, { colourGroup: "white" }),
+      pile(2, { clothingType: "Pile 2", colourGroup: "dark" }),
+    ]);
+    expect(washTogetherText(items)).toBe(
+      "same settings, but wash these separately — see the matrix",
+    );
   });
 });
 
