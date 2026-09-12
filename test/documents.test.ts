@@ -1,12 +1,15 @@
 import { describe, expect, test } from "bun:test";
+import { pdf } from "@react-pdf/renderer";
 import {
   type ResolvedInstruction,
   resolve,
   type Variant,
   variants,
 } from "@washy-washy/core/browser";
+import { PDFDocument } from "pdf-lib";
 import { pageInk } from "../scripts/screenshots";
 import {
+  CardDocument,
   gist,
   ironCardKey,
   ironLabel,
@@ -14,6 +17,7 @@ import {
   legendHottestSetting,
   MIN_MATRIX_CELL,
   matrixLayout,
+  PhoneDocument,
   protectsReferenceCredit,
   sheetGroups,
   steamColumnValue,
@@ -21,7 +25,7 @@ import {
   TABLE_WIDTH_BUDGET,
   washTogetherText,
 } from "../src/documents";
-import { renderPhone, renderPrint } from "../src/render";
+import { renderCard, renderPhone, renderPrint } from "../src/render";
 import { MACHINE, pile } from "./fixtures";
 import { inkPerPage, pageText } from "./pdf-text";
 
@@ -443,9 +447,41 @@ describe("PhoneDocument content, pinned per cut", () => {
   for (const variant of variants) {
     test(`${variant}: renders the same layout bytes as last confirmed`, async () => {
       const items = resolve([pile(1, { ironing: true, ironSetting: "3" })]);
-      const { pdf } = await renderPhone(items, MACHINE, variant);
+      const { pdf: bytes } = await renderPhone(items, MACHINE, variant);
 
-      expect(await pageInk(pdf, 1)).toBe(hashes[variant]);
+      expect(await pageInk(bytes, 1)).toBe(hashes[variant]);
     });
   }
+});
+
+describe("PhoneDocument and CardDocument", () => {
+  test("renderPhone's title says 'phone', renderCard's says 'card'", async () => {
+    const items = resolve([pile(1)]);
+    const phone = await PDFDocument.load((await renderPhone(items, MACHINE)).pdf);
+    const card = await PDFDocument.load((await renderCard(items, MACHINE)).pdf);
+
+    expect(phone.getTitle()).toContain("phone");
+    expect(card.getTitle()).toContain("card");
+  });
+
+  test("CardDocument renders IronCard for the iron variant, Card otherwise", async () => {
+    const items = resolve([pile(1, { ironing: true, ironSetting: "3" })]);
+    const iron = await renderCard(items, MACHINE, "iron");
+    const full = await renderCard(items, MACHINE, "full");
+
+    expect((await pageText(iron.pdf)).join("\n")).toContain("Thermostat on High");
+    expect((await pageText(full.pdf)).join("\n")).toContain("WASH TOGETHER WITH");
+  });
+
+  test('both default to variant "full" when called directly, without renderPhone/renderCard', async () => {
+    const items = resolve([pile(1)]);
+
+    const phoneBlob = await pdf(PhoneDocument({ items, height: 2000, machine: MACHINE })).toBlob();
+    const phoneText = (await pageText(new Uint8Array(await phoneBlob.arrayBuffer()))).join("\n");
+    expect(phoneText).toContain("WASH TOGETHER WITH");
+
+    const cardBlob = await pdf(CardDocument({ items, height: 2000, machine: MACHINE })).toBlob();
+    const cardText = (await pageText(new Uint8Array(await cardBlob.arrayBuffer()))).join("\n");
+    expect(cardText).toContain("WASH TOGETHER WITH");
+  });
 });

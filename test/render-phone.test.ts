@@ -78,5 +78,26 @@ describe("card text, golden per cut", () => {
     const text = (await pageText((await renderPrint(items, MACHINE, "iron")).pdf)).join("\n");
 
     expect(text).toContain("Do not iron");
+    expect(text).toContain("Leave the iron off");
+    expect(text).toContain("nothing on this card ever goes near the board");
+    expect(text).toContain("NEVER THESE");
+  });
+
+  test("iron: a single ironed pile reads '1 pile', not '1 piles'", async () => {
+    const items = resolve([pile(1, { ironing: true, ironSetting: "3" })]);
+    const text = (await pageText((await renderPrint(items, MACHINE, "iron")).pdf)).join("\n");
+
+    expect(text).toContain("1 pile");
+    expect(text).not.toContain("1 piles");
+  });
+
+  test("iron: two ironed piles at the same setting read '2 piles'", async () => {
+    const items = resolve([
+      pile(1, { ironing: true, ironSetting: "3" }),
+      pile(2, { clothingType: "Pile 2", ironing: true, ironSetting: "3" }),
+    ]);
+    const text = (await pageText((await renderPrint(items, MACHINE, "iron")).pdf)).join("\n");
+
+    expect(text).toContain("2 piles");
   });
 });
