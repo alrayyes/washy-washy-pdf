@@ -1,10 +1,17 @@
 import { describe, expect, test } from "bun:test";
-import { type ResolvedInstruction, resolve, variants } from "@washy-washy/core/browser";
+import {
+  type ResolvedInstruction,
+  resolve,
+  type Variant,
+  variants,
+} from "@washy-washy/core/browser";
 import { pageInk } from "../scripts/screenshots";
 import {
   gist,
   ironCardKey,
   ironLabel,
+  legendExample,
+  legendHottestSetting,
   MIN_MATRIX_CELL,
   matrixLayout,
   protectsReferenceCredit,
@@ -14,7 +21,7 @@ import {
   TABLE_WIDTH_BUDGET,
   washTogetherText,
 } from "../src/documents";
-import { renderPrint } from "../src/render";
+import { renderPhone, renderPrint } from "../src/render";
 import { MACHINE, pile } from "./fixtures";
 import { inkPerPage, pageText } from "./pdf-text";
 
@@ -221,6 +228,33 @@ describe("gist", () => {
   });
 });
 
+describe("legendExample", () => {
+  test("off is the first programme, example is the second", () => {
+    expect(legendExample(["Cottons", "Synthetics", "Wool"])).toEqual({
+      off: "Cottons",
+      example: "Synthetics",
+    });
+  });
+
+  test("example falls back to off when there's only one programme to show", () => {
+    expect(legendExample(["Cottons"])).toEqual({ off: "Cottons", example: "Cottons" });
+  });
+
+  test("both fall back to '' for a machine with no programmes at all", () => {
+    expect(legendExample([])).toEqual({ off: "", example: "" });
+  });
+});
+
+describe("legendHottestSetting", () => {
+  test("is the last setting's key, coolest-to-hottest order", () => {
+    expect(legendHottestSetting([{ key: "1" }, { key: "2" }, { key: "3" }])).toBe("3");
+  });
+
+  test("falls back to '' for a machine with no iron settings at all", () => {
+    expect(legendHottestSetting([])).toBe("");
+  });
+});
+
 describe("steamColumnValue", () => {
   test("is 'yes' for an ironed pile at a setting inside the steam zone", () => {
     const item = resolve([pile(1, { ironing: true, ironSetting: "3" })])[0] as ResolvedInstruction;
@@ -300,6 +334,17 @@ describe("card reference citation", () => {
 
     expect(Buffer.from(bytes).toString("latin1")).not.toContain("/Subtype /Link");
   });
+
+  test("different citations within one shared-settings group are each attributed to their own pile", async () => {
+    const items = resolve([
+      pile(1, { referenceName: "Manufacturer care guide" }),
+      pile(2, { clothingType: "Pile 2", referenceName: "Fabric care label" }),
+    ]);
+    const text = (await pageText((await renderPrint(items, MACHINE)).pdf)).join("\n");
+
+    expect(text).toContain("Pile 1: Manufacturer care guide");
+    expect(text).toContain("Pile 2: Fabric care label");
+  });
 });
 
 describe("Loads bold-group caption", () => {
@@ -317,6 +362,13 @@ describe("Loads bold-group caption", () => {
     // the reference sheet's own section past one page leaves a near-blank
     // page behind rather than failing outright.
     expect((await inkPerPage(result.pdf)).filter((ink) => ink < 1000)).toEqual([]);
+  });
+
+  test("a pile that can't share a load with anyone reads '(on its own)', not bold", async () => {
+    const items = resolve([pile(1, { mixTags: ["solo"] })]);
+    const text = (await pageText((await renderPrint(items, MACHINE)).pdf)).join("\n");
+
+    expect(text).toContain("(on its own)");
   });
 });
 
@@ -372,4 +424,28 @@ describe("Legend", () => {
 
     expect(await pageInk(pdf, 1)).toBe("5458597462f7f323");
   });
+});
+
+describe("PhoneDocument content, pinned per cut", () => {
+  // Masthead, Loads, Legend and Card/IronCard all lay out with style props
+  // (flexDirection, alignItems, margins, Legend's own `last` default) that
+  // never show up in a PDF's extracted text — a mutation to any of them
+  // still passes every text-based assertion elsewhere in this file. Pinned
+  // by content-stream hash instead, same technique and same reason as the
+  // "Legend" test above. Recompute a hash only when one of those
+  // components' layout deliberately changes.
+  const hashes: Record<Variant, string> = {
+    full: "c0cbac76eb4918c2",
+    wash: "edd6535b010ab226",
+    iron: "b401d8ee41845eb8",
+  };
+
+  for (const variant of variants) {
+    test(`${variant}: renders the same layout bytes as last confirmed`, async () => {
+      const items = resolve([pile(1, { ironing: true, ironSetting: "3" })]);
+      const { pdf } = await renderPhone(items, MACHINE, variant);
+
+      expect(await pageInk(pdf, 1)).toBe(hashes[variant]);
+    });
+  }
 });

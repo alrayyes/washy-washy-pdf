@@ -732,14 +732,43 @@ function Loads({ items }: { items: ResolvedInstruction[] }) {
 const LEGEND_DIAL_SIZE = 54;
 const LEGEND_BOX_HEIGHT = 66;
 
+/**
+ * Legend's own worked example: the machine's first programme (drawn at
+ * twelve o'clock and named in the caption) and its second, or the first
+ * again if there's only one to show. Both fall back to "" for a machine
+ * with none — unreachable from a real config (`@washy-washy/core`'s
+ * `parseMachine` requires at least two programmes, same as `ProgramDial`'s
+ * own `dialStep`), but still reachable from a hand-built test fixture, so
+ * exported to be tested directly rather than needing one.
+ */
+export function legendExample(programs: string[]): { off: string; example: string } {
+  const off = programs[0] ?? "";
+  return { off, example: programs[1] ?? off };
+}
+
+/**
+ * The hottest iron setting Legend's own drawing shows a full ring at — a
+ * dial position, not text, so no full-render test can observe its fallback
+ * through the page's extracted text.
+ */
+export function legendHottestSetting(settings: { key: string }[]): string {
+  return settings[settings.length - 1]?.key ?? "";
+}
+
 /** How to read the dial drawings, printed once per document. */
-function Legend({ last = false, variant = "full" }: { last?: boolean; variant?: Variant }) {
+function Legend({
+  last = false,
+  // Stryker disable next-line StringLiteral: unreachable — both call sites
+  // (PhoneDocument, ReferenceSheet) always pass variant explicitly.
+  variant = "full",
+}: {
+  last?: boolean;
+  variant?: Variant;
+}) {
   const machine = useMachine();
   const { washer } = machine;
-  const off = washer.programs[0] ?? "";
-  const example = washer.programs[1] ?? off;
-  // The hottest position the iron offers, so the drawing shows a full ring.
-  const hottest = machine.iron.settings[machine.iron.settings.length - 1]?.key ?? "";
+  const { off, example } = legendExample(washer.programs);
+  const hottest = legendHottestSetting(machine.iron.settings);
 
   return (
     <View
