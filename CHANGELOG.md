@@ -1,3 +1,9 @@
+## [2.4.2](https://github.com/alrayyes/washy-washy-pdf/compare/v2.4.1...v2.4.2) (2026-09-12)
+
+### Bug Fixes
+
+* render a bare knob instead of crashing when a machine has no programmes ([#106](https://github.com/alrayyes/washy-washy-pdf/issues/106)) ([3e7c237](https://github.com/alrayyes/washy-washy-pdf/commit/3e7c237d3befe33c0248f3c954bc87ca740375bb)), closes [#103](https://github.com/alrayyes/washy-washy-pdf/issues/103)
+
 ## [2.4.1](https://github.com/alrayyes/washy-washy-pdf/compare/v2.4.0...v2.4.1) (2026-09-11)
 
 ### Bug Fixes
