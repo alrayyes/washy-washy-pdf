@@ -19,7 +19,9 @@ import {
   MIN_MATRIX_CELL,
   matrixLayout,
   PhoneDocument,
+  PrintDocument,
   protectsReferenceCredit,
+  ReferenceDocument,
   sheetGroups,
   steamColumnValue,
   summaryColumns,
@@ -306,6 +308,22 @@ describe("summaryColumns", () => {
       expect(width).toBeLessThanOrEqual(TABLE_WIDTH_BUDGET);
     });
   }
+
+  test("Buttons reads '—' for a pile with no options selected", () => {
+    const column = summaryColumns(MACHINE, "full").find((c) => c.label === "Buttons");
+    if (!column) throw new Error("no Buttons column");
+    const item = resolve([pile(1, { options: [] })])[0] as ResolvedInstruction;
+
+    expect(column.value(item)).toBe("—");
+  });
+
+  test("Softener reads 'no' for a pile that doesn't call for one", () => {
+    const column = summaryColumns(MACHINE, "full").find((c) => c.label === "Softener");
+    if (!column) throw new Error("no Softener column");
+    const item = resolve([pile(1, { fabricSoftener: false })])[0] as ResolvedInstruction;
+
+    expect(column.value(item)).toBe("no");
+  });
 });
 
 describe("MixMatrix blocker legend", () => {
@@ -535,6 +553,24 @@ describe("PhoneDocument and CardDocument", () => {
     const cardBlob = await pdf(CardDocument({ items, height: 2000, machine: MACHINE })).toBlob();
     const cardText = (await pageText(new Uint8Array(await cardBlob.arrayBuffer()))).join("\n");
     expect(cardText).toContain("WASH TOGETHER WITH");
+  });
+
+  test('ReferenceDocument and PrintDocument also default to variant "full" when called directly', async () => {
+    const items = resolve([pile(1)]);
+
+    const referenceBlob = await pdf(
+      ReferenceDocument({ items, machine: MACHINE, density: 1 }),
+    ).toBlob();
+    const referenceText = (await pageText(new Uint8Array(await referenceBlob.arrayBuffer()))).join(
+      "\n",
+    );
+    expect(referenceText).toContain("AT A GLANCE");
+    expect(referenceText).toContain("CAN THESE SHARE A LOAD");
+
+    const printBlob = await pdf(PrintDocument({ items, machine: MACHINE, density: 1 })).toBlob();
+    const printPages = await pageText(new Uint8Array(await printBlob.arrayBuffer()));
+    expect(printPages.join("\n")).toContain("AT A GLANCE");
+    expect(printPages.find((page) => page.includes("WASH TOGETHER WITH"))).toBeDefined();
   });
 
   // CardDocument's own Page padding is invisible to a text assertion, but

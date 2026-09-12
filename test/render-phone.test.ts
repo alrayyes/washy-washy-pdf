@@ -57,6 +57,14 @@ describe("card text, golden per cut", () => {
     expect(text).toContain("Cottons 60 °C · 1200 rpm");
   });
 
+  test("full: a spin of '0' reads 'no spin', not '0 rpm'", async () => {
+    const items = resolve([pile(1, { spin: "0" })]);
+    const text = (await pageText((await renderPrint(items, MACHINE, "full")).pdf)).join("\n");
+
+    expect(text).toContain("no spin");
+    expect(text).not.toContain("0 rpm");
+  });
+
   test("wash: the same fascia line renders, with no iron section heading", async () => {
     const items = resolve([pile(1, { temperature: "60", spin: "1200" })]);
     const text = (await pageText((await renderPrint(items, MACHINE, "wash")).pdf)).join("\n");
@@ -71,6 +79,17 @@ describe("card text, golden per cut", () => {
 
     expect(text).toContain("High");
     expect(text).toContain("inside the steam zone");
+  });
+
+  test("iron: cards are numbered from 1, not 0 or negative", async () => {
+    const items = resolve([
+      pile(1, { ironing: true, ironSetting: "1" }),
+      pile(2, { clothingType: "Pile 2", ironing: true, ironSetting: "3" }),
+    ]);
+    const text = (await pageText((await renderPrint(items, MACHINE, "iron")).pdf)).join("\n");
+
+    expect(text).toContain("1. Low");
+    expect(text).toContain("2. High");
   });
 
   test("iron: a setting below the steam zone says so, not 'inside'", async () => {

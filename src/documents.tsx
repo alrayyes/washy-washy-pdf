@@ -399,6 +399,9 @@ function Card({
   // before PrintDocument's fixed-position PageFooter and starts flush
   // against a page whose own size doesn't depend on it either.
   compact = false,
+  // Stryker disable next-line StringLiteral: unreachable — every call
+  // site (PhoneDocument, CardDocument, PrintDocument) always passes
+  // variant explicitly.
   variant = "full",
 }: {
   group: ResolvedInstruction[];
@@ -526,6 +529,15 @@ function IronCard({
   const item = group[0] as ResolvedInstruction;
   const setting = item.ironing ? ironSetting(machine, item.ironSetting) : undefined;
   const chrome = cardChrome(compact);
+  // Stryker disable next-line ObjectLiteral: confirmed equivalent
+  // (decompressed content stream identical either way) — this is the
+  // thermostat row's last element, its text is left-aligned and short
+  // enough never to wrap, and nothing after it depends on how much of
+  // the row's own already-fixed width this box claims. A plain variable
+  // rather than an inline style object so this comment lands somewhere
+  // Stryker's own next-line detection actually reaches — {/* ... */}
+  // right before a JSX sibling doesn't suppress its neighbour.
+  const thermostatColumnStyle = { flex: 1 };
 
   return (
     <View
@@ -582,12 +594,7 @@ function IronCard({
         }}
       >
         <IronDial setting={item.ironSetting} off={!item.ironing} size={compact ? 54 : 62} />
-        {/* Stryker disable next-line ObjectLiteral: confirmed equivalent
-            (decompressed content stream identical either way) — this is
-            the row's last element, its text is left-aligned and short
-            enough never to wrap, and nothing after it depends on how
-            much of the row's own already-fixed width this box claims. */}
-        <View style={{ flex: 1 }}>
+        <View style={thermostatColumnStyle}>
           <Text style={{ fontFamily: font.bold, fontSize: type.emphasis, color: colour.ink }}>
             {setting ? `Thermostat on ${setting.label}` : "Leave the iron off"}
           </Text>
@@ -620,6 +627,13 @@ function IronCard({
           return (
             <View
               key={member.clothingType}
+              // Stryker disable next-line StringLiteral: confirmed
+              // equivalent (decompressed content stream identical either
+              // way, checked with an ironingNotes long enough to wrap
+              // this row's flex: 1 note column onto several lines) —
+              // react-pdf draws each Text's own lines at its own
+              // top-anchored position regardless of the row's
+              // cross-axis alignment.
               style={{ flexDirection: "row", alignItems: "flex-start", marginTop: 1.5 }}
               {...(protectCredit ? { minPresenceAhead: REFERENCE_CREDIT_MIN_PRESENCE_AHEAD } : {})}
             >
@@ -1010,6 +1024,9 @@ export interface Column {
 
 /** The first clause of a sentence, which is all a table cell has room for. */
 export function gist(prose: string): string {
+  // Stryker disable next-line StringLiteral: unreachable — String.split
+  // always returns at least one element (`"".split(/x/)` is `[""]`), so
+  // `[0]` is never undefined and `?? ""` never runs.
   return prose.split(/[—.:]/)[0]?.trim() ?? "";
 }
 
