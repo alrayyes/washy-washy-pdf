@@ -9,6 +9,7 @@ import {
   matrixLayout,
   protectsReferenceCredit,
   sheetGroups,
+  steamColumnValue,
   summaryColumns,
   TABLE_WIDTH_BUDGET,
   washTogetherText,
@@ -217,6 +218,28 @@ describe("gist", () => {
 
   test("trims surrounding whitespace off the clause", () => {
     expect(gist("  Padded text  — extra")).toBe("Padded text");
+  });
+});
+
+describe("steamColumnValue", () => {
+  test("is 'yes' for an ironed pile at a setting inside the steam zone", () => {
+    const item = resolve([pile(1, { ironing: true, ironSetting: "3" })])[0] as ResolvedInstruction;
+    expect(steamColumnValue(MACHINE, item)).toBe("yes");
+  });
+
+  test("is '—' for an ironed pile at a setting below the steam zone", () => {
+    const item = resolve([pile(1, { ironing: true, ironSetting: "1" })])[0] as ResolvedInstruction;
+    expect(steamColumnValue(MACHINE, item)).toBe("—");
+  });
+
+  test("is '—' for a never-ironed pile, whatever its ironSetting says", () => {
+    const item = resolve([pile(1, { ironing: false, ironSetting: "3" })])[0] as ResolvedInstruction;
+    expect(steamColumnValue(MACHINE, item)).toBe("—");
+  });
+
+  test("is '—' when the machine has no matching setting to check steam on", () => {
+    const item = resolve([pile(1, { ironing: true, ironSetting: "9" })])[0] as ResolvedInstruction;
+    expect(steamColumnValue(MACHINE, item)).toBe("—");
   });
 });
 

@@ -947,6 +947,15 @@ export function gist(prose: string): string {
  * the 14pt row-number gutter have to come to at most `TABLE_WIDTH_BUDGET` —
  * checked by `test/documents.test.ts`, not just this comment.
  */
+/**
+ * The reference sheet's iron-variant "Steam" column: "yes" only for a pile
+ * that's actually ironed, at a setting that's actually in the steam zone —
+ * "—" for a never-ironed pile and for one whose thermostat sits below it.
+ */
+export function steamColumnValue(machine: Machine, item: ResolvedInstruction): string {
+  return item.ironing && ironSetting(machine, item.ironSetting)?.steam ? "yes" : "—";
+}
+
 export function summaryColumns(machine: Machine, variant: Variant): Column[] {
   if (variant === "iron") {
     // No "why not / how" column — the ironingNotes it would gist are already
@@ -956,11 +965,7 @@ export function summaryColumns(machine: Machine, variant: Variant): Column[] {
     return [
       { label: "Pile", width: 160, value: (i) => i.clothingType },
       { label: "Thermostat", width: 150, value: (i) => ironLabel(machine, i) },
-      {
-        label: "Steam",
-        width: 40,
-        value: (i) => (i.ironing && ironSetting(machine, i.ironSetting)?.steam ? "yes" : "—"),
-      },
+      { label: "Steam", width: 40, value: (i) => steamColumnValue(machine, i) },
     ];
   }
 
