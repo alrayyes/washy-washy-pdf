@@ -297,6 +297,34 @@ describe("summaryColumns", () => {
   }
 });
 
+describe("MixMatrix blocker legend", () => {
+  test("a real blocker's row names its lowercased reason, not the original case", async () => {
+    const items = resolve([
+      pile(1, { colourGroup: "white" }),
+      pile(2, { clothingType: "Pile 2", colourGroup: "dark" }),
+    ]);
+    const text = (await pageText((await renderPrint(items, MACHINE)).pdf)).join("\n");
+
+    expect(text).toContain("colours would run into each other");
+    expect(text).not.toContain("Colours would run into each other");
+  });
+
+  // The em dash between a legend row's code and its reason doesn't survive
+  // pdf-lib's text extraction for this font (same reason #30's "empty
+  // referenceName" test above checks for its absence rather than its
+  // presence), so it's pinned by content-stream hash instead, same
+  // technique and reason as the "Legend"/"PhoneDocument content" tests.
+  test("a real blocker's row includes the em dash between its code and reason", async () => {
+    const items = resolve([
+      pile(1, { colourGroup: "white" }),
+      pile(2, { clothingType: "Pile 2", colourGroup: "dark" }),
+    ]);
+    const { pdf: bytes } = await renderPrint(items, MACHINE);
+
+    expect(await pageInk(bytes, 1)).toBe("a5ea2692dd61b4a8");
+  });
+});
+
 describe("card reference citation", () => {
   // #30: `Instruction` gained `referenceName`/`referenceLink` (@washy-washy/core@1.3.0)
   // but nothing here drew them — a chart carrying real citations still

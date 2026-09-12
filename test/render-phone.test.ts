@@ -70,7 +70,20 @@ describe("card text, golden per cut", () => {
     const text = (await pageText((await renderPrint(items, MACHINE, "iron")).pdf)).join("\n");
 
     expect(text).toContain("High");
-    expect(text).toContain("steam zone");
+    expect(text).toContain("inside the steam zone");
+  });
+
+  test("iron: a setting below the steam zone says so, not 'inside'", async () => {
+    // Setting "1" in the fixture machine has steam: false.
+    const items = resolve([pile(1, { ironing: true, ironSetting: "1" })]);
+    const text = (await pageText((await renderPrint(items, MACHINE, "iron")).pdf)).join("\n");
+
+    // The em dash doesn't survive pdf-lib's text extraction for this font
+    // (see documents.test.ts's "MixMatrix blocker legend" for the same
+    // issue), so this checks the text either side of it.
+    expect(text).toContain("below the steam zone");
+    expect(text).toContain("dry iron only");
+    expect(text).not.toContain("inside the steam zone");
   });
 
   test("iron: a never-ironed pile reads 'Do not iron', not a blank setting", async () => {
