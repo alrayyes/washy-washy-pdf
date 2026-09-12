@@ -388,6 +388,19 @@ describe("card reference citation", () => {
     expect(text).toContain("Pile 1: Manufacturer care guide");
     expect(text).toContain("Pile 2: Fabric care label");
   });
+
+  // The multi-citation list's own marginTop is invisible to a text
+  // assertion — pinned by content-stream hash instead, same technique as
+  // this file's other "pinned" tests.
+  test("the multi-citation list renders the same layout bytes as last confirmed", async () => {
+    const items = resolve([
+      pile(1, { referenceName: "Manufacturer care guide" }),
+      pile(2, { clothingType: "Pile 2", referenceName: "Fabric care label" }),
+    ]);
+    const { pdf: bytes } = await renderPrint(items, MACHINE);
+
+    expect(await pageInk(bytes, 2)).toBe("6a18474c60f14e14");
+  });
 });
 
 describe("Loads bold-group caption", () => {
@@ -522,6 +535,17 @@ describe("PhoneDocument and CardDocument", () => {
     const cardBlob = await pdf(CardDocument({ items, height: 2000, machine: MACHINE })).toBlob();
     const cardText = (await pageText(new Uint8Array(await cardBlob.arrayBuffer()))).join("\n");
     expect(cardText).toContain("WASH TOGETHER WITH");
+  });
+
+  // CardDocument's own Page padding is invisible to a text assertion, but
+  // (confirmed empirically, unlike Card/IronCard's own compact chrome
+  // above) does shift the drawn content — pinned by content-stream hash,
+  // same technique as the other "pinned per cut" tests in this file.
+  test("renderCard's own page style renders the same layout bytes as last confirmed", async () => {
+    const items = resolve([pile(1)]);
+    const { pdf: bytes } = await renderCard(items, MACHINE, "full");
+
+    expect(await pageInk(bytes, 1)).toBe("456bec80babf5383");
   });
 });
 
