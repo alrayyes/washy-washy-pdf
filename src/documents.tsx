@@ -357,6 +357,26 @@ export function washTogetherText(group: ResolvedInstruction[]): string {
 }
 
 /**
+ * The outer border's padding/margin and the heading's font size Card and
+ * IronCard both scale down for a single-pile phone/card download —
+ * identical in both, so shared rather than duplicated.
+ *
+ * Pure, so a test can pin the exact numbers directly: a single-pile
+ * fixture's rendered PDF doesn't reliably distinguish `compact` through
+ * either its extracted text (unaffected either way) or a content-stream
+ * hash (the surrounding page's own dimensions absorb the outer padding
+ * difference without shifting any drawn glyph's position in this specific
+ * one-card, one-page layout).
+ */
+export function cardChrome(compact: boolean) {
+  return {
+    padding: compact ? space.lg : space.xl,
+    marginBottom: compact ? space.lg : space.xxl,
+    headingSize: compact ? type.heading : type.headingLarge,
+  };
+}
+
+/**
  * One card, top to bottom: what it is, how the machine goes, iron, dry.
  *
  * `group` is usually a single pile. Where several piles are set up identically
@@ -379,6 +399,7 @@ function Card({
 }) {
   const item = group[0] as ResolvedInstruction;
   const heading = group.map((member) => member.clothingType).join(" + ");
+  const chrome = cardChrome(compact);
 
   return (
     <View
@@ -386,8 +407,8 @@ function Card({
         borderWidth: space.edgeWidth,
         borderColor: colour.line,
         borderRadius: space.md,
-        padding: compact ? space.lg : space.xl,
-        marginBottom: compact ? space.lg : space.xxl,
+        padding: chrome.padding,
+        marginBottom: chrome.marginBottom,
       }}
     >
       <View
@@ -492,6 +513,7 @@ function IronCard({
   const machine = useMachine();
   const item = group[0] as ResolvedInstruction;
   const setting = item.ironing ? ironSetting(machine, item.ironSetting) : undefined;
+  const chrome = cardChrome(compact);
 
   return (
     <View
@@ -499,8 +521,8 @@ function IronCard({
         borderWidth: space.edgeWidth,
         borderColor: colour.line,
         borderRadius: space.md,
-        padding: compact ? space.lg : space.xl,
-        marginBottom: compact ? space.lg : space.xxl,
+        padding: chrome.padding,
+        marginBottom: chrome.marginBottom,
       }}
     >
       <View
@@ -517,7 +539,7 @@ function IronCard({
         <Text
           style={{
             fontFamily: font.bold,
-            fontSize: compact ? type.heading : type.headingLarge,
+            fontSize: chrome.headingSize,
             color: colour.ink,
             flex: 1,
             paddingRight: 6,

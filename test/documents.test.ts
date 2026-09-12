@@ -10,6 +10,7 @@ import { PDFDocument } from "pdf-lib";
 import { pageInk } from "../scripts/screenshots";
 import {
   CardDocument,
+  cardChrome,
   gist,
   ironCardKey,
   ironLabel,
@@ -187,6 +188,16 @@ describe("protectsReferenceCredit", () => {
 
     expect(protectsReferenceCredit(0, group)).toBe(true);
     expect(protectsReferenceCredit(1, group)).toBe(true);
+  });
+});
+
+describe("cardChrome", () => {
+  test("compact scales the outer padding/margin and heading font size down", () => {
+    expect(cardChrome(true)).toEqual({ padding: 8, marginBottom: 8, headingSize: 11 });
+  });
+
+  test("non-compact (the default) is roomier throughout", () => {
+    expect(cardChrome(false)).toEqual({ padding: 10, marginBottom: 12, headingSize: 13 });
   });
 });
 
