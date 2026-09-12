@@ -5,6 +5,8 @@ import {
   gist,
   ironCardKey,
   ironLabel,
+  MIN_MATRIX_CELL,
+  matrixLayout,
   protectsReferenceCredit,
   sheetGroups,
   summaryColumns,
@@ -173,6 +175,35 @@ describe("protectsReferenceCredit", () => {
 
     expect(protectsReferenceCredit(0, group)).toBe(true);
     expect(protectsReferenceCredit(1, group)).toBe(true);
+  });
+});
+
+describe("matrixLayout", () => {
+  test("labelWidth and available narrow together with density", () => {
+    const layout = matrixLayout(2, 1);
+    expect(layout.labelWidth).toBe(118);
+    expect(layout.available).toBeCloseTo(405.28);
+  });
+
+  test("cell divides the available width by however many columns actually appear in a block", () => {
+    // Fewer items than fit in a block: cell is available / itemCount.
+    const wide = matrixLayout(2, 1);
+    expect(wide.columnsPerBlock).toBe(28);
+    expect(wide.cell).toBeCloseTo(202.64);
+
+    // More items than fit in a block: cell is available / columnsPerBlock,
+    // not available / itemCount — the same scenario
+    // overflow-guards.test.ts exercises through a full render (40 piles at
+    // density 0.7).
+    const narrow = matrixLayout(40, 0.7);
+    expect(narrow.columnsPerBlock).toBe(31);
+    expect(narrow.cell).toBeCloseTo(440.68 / 31);
+    expect(narrow.cell).toBeGreaterThanOrEqual(MIN_MATRIX_CELL);
+  });
+
+  test("columnsPerBlock never drops below 1, even when density leaves almost no room", () => {
+    const layout = matrixLayout(1, 4.4);
+    expect(layout.columnsPerBlock).toBe(1);
   });
 });
 

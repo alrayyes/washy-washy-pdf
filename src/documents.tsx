@@ -1080,7 +1080,14 @@ function SummaryTable({
 /** A bold "OK" — the widest thing a cell ever holds — still reads at this width. */
 export const MIN_MATRIX_CELL = 14;
 
-function MixMatrix({ items, density }: { items: ResolvedInstruction[]; density: number }) {
+/**
+ * `MixMatrix`'s own layout: how wide the row-label column and each square
+ * cell are, and how many columns fit in a block before the grid splits and
+ * stacks another one underneath. These are `View`/`Text` widths, not text —
+ * invisible to a full-render test reading a PDF's extracted text or ink —
+ * so it's exported and tested directly instead.
+ */
+export function matrixLayout(itemCount: number, density: number) {
   // Narrows with density like the summary table's columns, so a dense chart
   // spends its tightening on the grid too, not on type alone — it also frees
   // more of the row width for `cell`, the actual matrix squares.
@@ -1091,7 +1098,12 @@ function MixMatrix({ items, density }: { items: ResolvedInstruction[]; density: 
   // cells keep narrowing past legibility. Full-width columns still divide
   // available space evenly when there are few enough of them to fit.
   const columnsPerBlock = Math.max(1, Math.floor(available / MIN_MATRIX_CELL));
-  const cell = available / Math.min(items.length, columnsPerBlock);
+  const cell = available / Math.min(itemCount, columnsPerBlock);
+  return { labelWidth, available, columnsPerBlock, cell };
+}
+
+function MixMatrix({ items, density }: { items: ResolvedInstruction[]; density: number }) {
+  const { labelWidth, columnsPerBlock, cell } = matrixLayout(items.length, density);
   const used = new Set<Blocker>();
   for (const a of items)
     for (const b of items) {
