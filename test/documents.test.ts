@@ -1,13 +1,52 @@
 import { describe, expect, test } from "bun:test";
-import { resolve, variants } from "@washy-washy/core/browser";
+import { type ResolvedInstruction, resolve, variants } from "@washy-washy/core/browser";
 import { pageInk } from "../scripts/screenshots";
-import { summaryColumns, TABLE_WIDTH_BUDGET } from "../src/documents";
+import {
+  gist,
+  ironCardKey,
+  ironLabel,
+  protectsReferenceCredit,
+  sheetGroups,
+  summaryColumns,
+  TABLE_WIDTH_BUDGET,
+} from "../src/documents";
 import { renderPrint } from "../src/render";
 import { MACHINE, pile } from "./fixtures";
 import { inkPerPage, pageText } from "./pdf-text";
 
 /** Same gutter `SummaryTable` gives the row-number column. */
 const ROW_NUMBER_GUTTER = 14;
+
+describe("ironLabel", () => {
+  test("reads 'do not iron' for a never-ironed pile, whatever its ironSetting", () => {
+    const item = resolve([pile(1, { ironing: false, ironSetting: "2" })])[0] as ResolvedInstruction;
+    expect(ironLabel(MACHINE, item)).toBe("do not iron");
+  });
+
+  test("reads the machine's own label for a known ironSetting", () => {
+    const item = resolve([pile(1, { ironing: true, ironSetting: "2" })])[0] as ResolvedInstruction;
+    expect(ironLabel(MACHINE, item)).toBe("Medium");
+  });
+
+  test("falls back to the raw ironSetting key when the machine has no matching setting", () => {
+    const item = resolve([pile(1, { ironing: true, ironSetting: "9" })])[0] as ResolvedInstruction;
+    expect(ironLabel(MACHINE, item)).toBe("9");
+  });
+});
+
+describe("ironCardKey", () => {
+  test("is the ironSetting for an ironed pile", () => {
+    const item = resolve([pile(1, { ironing: true, ironSetting: "2" })])[0] as ResolvedInstruction;
+    expect(ironCardKey(item)).toBe("2");
+  });
+
+  test("is 'do-not-iron' for a never-ironed pile, so every no-iron group shares one key", () => {
+    const a = resolve([pile(1, { ironing: false, ironSetting: "1" })])[0] as ResolvedInstruction;
+    const b = resolve([pile(2, { ironing: false, ironSetting: "2" })])[0] as ResolvedInstruction;
+    expect(ironCardKey(a)).toBe("do-not-iron");
+    expect(ironCardKey(b)).toBe("do-not-iron");
+  });
+});
 
 describe("Card temperature", () => {
   // #10: the card hardcoded the Dutch "koud" for a cold wash instead of
@@ -28,6 +67,71 @@ describe("Card temperature", () => {
     const text = (await pageText((await renderPrint(items, MACHINE)).pdf)).join("\n");
 
     expect(text).toContain("Cottons 60 °C ·");
+  });
+});
+
+describe("sheetGroups", () => {
+  test("full variant (cardGroups) splits on wash settings and on ironSetting alike", () => {
+    const items = resolve([
+      pile(1, { temperature: "40", ironSetting: "1" }),
+      pile(2, { temperature: "40", ironSetting: "2" }),
+    ]);
+    expect(sheetGroups(items, MACHINE, "full").length).toBe(2);
+  });
+
+  test("wash variant merges piles that only disagree on ironSetting", () => {
+    const items = resolve([
+      pile(1, { temperature: "40", ironSetting: "1" }),
+      pile(2, { temperature: "40", ironSetting: "2" }),
+    ]);
+    expect(sheetGroups(items, MACHINE, "wash").length).toBe(1);
+  });
+
+  test("iron variant merges piles that only disagree on wash settings", () => {
+    const items = resolve([
+      pile(1, { temperature: "40", ironSetting: "1" }),
+      pile(2, { temperature: "60", ironSetting: "1" }),
+    ]);
+    expect(sheetGroups(items, MACHINE, "iron").length).toBe(1);
+  });
+});
+
+describe("protectsReferenceCredit", () => {
+  test("is false throughout when nothing in the group carries a citation", () => {
+    const group = Array.from({ length: 10 }, () => ({ referenceName: "" }));
+    for (let index = 0; index < group.length; index++) {
+      expect(protectsReferenceCredit(index, group)).toBe(false);
+    }
+  });
+
+  test("protects only the trailing REFERENCE_CREDIT_PROTECTED_ROWS rows when a citation exists", () => {
+    const group = Array.from({ length: 10 }, (_, index) =>
+      index === 0 ? { referenceName: "Manufacturer care guide" } : { referenceName: "" },
+    );
+
+    expect(protectsReferenceCredit(3, group)).toBe(false);
+    expect(protectsReferenceCredit(4, group)).toBe(true);
+    expect(protectsReferenceCredit(9, group)).toBe(true);
+  });
+
+  test("protects every row when the whole group is shorter than the protected window", () => {
+    const group = [{ referenceName: "Manufacturer care guide" }, { referenceName: "" }];
+
+    expect(protectsReferenceCredit(0, group)).toBe(true);
+    expect(protectsReferenceCredit(1, group)).toBe(true);
+  });
+});
+
+describe("gist", () => {
+  test("takes the text up to the first period, colon or em dash", () => {
+    expect(gist("Colour liquid detergent")).toBe("Colour liquid detergent");
+    expect(gist("Woolite — for delicates")).toBe("Woolite");
+    expect(gist("Non-bio: fragrance-free")).toBe("Non-bio");
+    expect(gist("Store bought. Keep sealed.")).toBe("Store bought");
+  });
+
+  test("trims surrounding whitespace off the clause", () => {
+    expect(gist("  Padded text  — extra")).toBe("Padded text");
   });
 });
 

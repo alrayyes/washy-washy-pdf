@@ -68,7 +68,12 @@ export function densityFont(base: number, density: number): number {
  */
 const PHONE_WIDTH = 244;
 
-function ironLabel(machine: Machine, item: ResolvedInstruction): string {
+/**
+ * Exported only so a test can call it directly — its result also ends up as
+ * a React `key` prop (`ironCardKey`'s own caller), which never appears in a
+ * rendered PDF for a full-render test to observe.
+ */
+export function ironLabel(machine: Machine, item: ResolvedInstruction): string {
   if (!item.ironing) return "do not iron";
   return ironSetting(machine, item.ironSetting)?.label ?? item.ironSetting;
 }
@@ -76,16 +81,22 @@ function ironLabel(machine: Machine, item: ResolvedInstruction): string {
 /**
  * What makes an ironing card unique. A pile you never iron has no thermostat
  * position, so every no-iron group would otherwise share the empty key.
+ *
+ * Exported only so a test can call it directly — a React `key` prop never
+ * appears in a rendered PDF for a full-render test to observe.
  */
-function ironCardKey(item: ResolvedInstruction): string {
+export function ironCardKey(item: ResolvedInstruction): string {
   return item.ironing ? item.ironSetting : "do-not-iron";
 }
 
 /**
  * How a sheet divides the chart into cards, which is not the same question on
  * each. See `cardGroups`, `washGroups` and `ironGroups` for why.
+ *
+ * Exported only so a test can call it directly with a bare `Variant` string,
+ * rather than needing a full render per variant to exercise the dispatch.
  */
-function sheetGroups(
+export function sheetGroups(
   items: ResolvedInstruction[],
   machine: Machine,
   variant: Variant,
@@ -241,6 +252,26 @@ const REFERENCE_CREDIT_MIN_PRESENCE_AHEAD = 100;
  * in advance which row that will be.
  */
 const REFERENCE_CREDIT_PROTECTED_ROWS = 6;
+
+/**
+ * Whether `IronCard`'s row at `memberIndex` is one of the trailing rows that
+ * should ask react-pdf to keep it, everything after it, and the following
+ * `ReferenceCredit` together — `false` for the whole group when nothing in
+ * it carries a citation, since there's nothing to protect.
+ *
+ * `minPresenceAhead` (a layout hint, not rendered text) is invisible to a
+ * full-render test reading the PDF's text or ink, so this is pulled out on
+ * its own to be tested directly instead.
+ */
+export function protectsReferenceCredit(
+  memberIndex: number,
+  group: Pick<ResolvedInstruction, "referenceName">[],
+): boolean {
+  return (
+    memberIndex >= group.length - REFERENCE_CREDIT_PROTECTED_ROWS &&
+    group.some((item) => item.referenceName !== "")
+  );
+}
 
 /**
  * Who backs up a care instruction that isn't obvious from the garment
@@ -528,9 +559,7 @@ function IronCard({
           // and the citation together. One row's worth of protection
           // (#51's original fix) can itself be too short to clear the
           // near-blank floor when the dragged rows are themselves short.
-          const protectCredit =
-            memberIndex >= group.length - REFERENCE_CREDIT_PROTECTED_ROWS &&
-            group.some((item) => item.referenceName !== "");
+          const protectCredit = protectsReferenceCredit(memberIndex, group);
           return (
             <View
               key={member.clothingType}
@@ -894,7 +923,7 @@ export interface Column {
 }
 
 /** The first clause of a sentence, which is all a table cell has room for. */
-function gist(prose: string): string {
+export function gist(prose: string): string {
   return prose.split(/[—.:]/)[0]?.trim() ?? "";
 }
 
