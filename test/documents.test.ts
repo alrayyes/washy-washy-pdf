@@ -485,3 +485,27 @@ describe("PhoneDocument and CardDocument", () => {
     expect(cardText).toContain("WASH TOGETHER WITH");
   });
 });
+
+describe("PrintDocument content, pinned per cut", () => {
+  // ReferenceSheet's own layout (its marginTop before the legend row) and
+  // Card/IronCard's non-compact style props (PrintDocument is the one
+  // caller that renders either without compact) are, like PhoneDocument's
+  // own style props above, invisible to a full-render text assertion.
+  // Pinned by content-stream hash for the same reason.
+  const hashes: Record<Variant, string> = {
+    full: "a573d2e8d4755fd7",
+    wash: "6896d5183ddf897f",
+    // Same fixture and hash the "Legend" test above already pins — this
+    // one is pinning the whole page, that one specifically the dial state.
+    iron: "5458597462f7f323",
+  };
+
+  for (const variant of variants) {
+    test(`${variant}: renders the same layout bytes as last confirmed`, async () => {
+      const items = resolve([pile(1, { ironing: true, ironSetting: "3" })]);
+      const { pdf: bytes } = await renderPrint(items, MACHINE, variant);
+
+      expect(await pageInk(bytes, 1)).toBe(hashes[variant]);
+    });
+  }
+});
