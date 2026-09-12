@@ -317,12 +317,14 @@ describe("summaryColumns", () => {
     expect(column.value(item)).toBe("—");
   });
 
-  test("Softener reads 'no' for a pile that doesn't call for one", () => {
+  test("Softener reads 'yes'/'no' to match whether the pile calls for one", () => {
     const column = summaryColumns(MACHINE, "full").find((c) => c.label === "Softener");
     if (!column) throw new Error("no Softener column");
-    const item = resolve([pile(1, { fabricSoftener: false })])[0] as ResolvedInstruction;
+    const softened = resolve([pile(1, { fabricSoftener: true })])[0] as ResolvedInstruction;
+    const unsoftened = resolve([pile(2, { fabricSoftener: false })])[0] as ResolvedInstruction;
 
-    expect(column.value(item)).toBe("no");
+    expect(column.value(softened)).toBe("yes");
+    expect(column.value(unsoftened)).toBe("no");
   });
 });
 
