@@ -10,6 +10,7 @@ import {
 import { PDFDocument } from "pdf-lib";
 import type { ReactElement } from "react";
 import { CardDocument, PhoneDocument, PrintDocument, ReferenceDocument } from "./documents";
+import { bisectBetween, growAndBisect } from "./fitting";
 import { sanitizeInstructions, sanitizeMachine } from "./sanitize";
 
 /** Merges two `dropped` lists into one, keeping each distinct character once. */
@@ -43,7 +44,11 @@ async function renderToBytes(document: ReactElement<any>): Promise<Uint8Array> {
  * but a guess that is wrong by a factor costs passes at both ends, and the
  * split sheets carry a fraction of what the full one does.
  */
-function guessHeight(items: ResolvedInstruction[], machine: Machine, variant: Variant): number {
+export function guessHeight(
+  items: ResolvedInstruction[],
+  machine: Machine,
+  variant: Variant,
+): number {
   const length = (pick: (item: ResolvedInstruction) => string) =>
     items.reduce((total, item) => total + pick(item).length, 0);
 
@@ -79,47 +84,33 @@ export interface PhoneRender {
  * onto a second page, then bisect back down until the trailing blank space
  * is under `tolerance`. Each pass is a few tens of milliseconds.
  */
-async function fitToOnePage(
+export async function fitToOnePage(
   render: (height: number) => Promise<Uint8Array>,
   initialGuess: number,
   tolerance: number,
 ): Promise<{ pdf: Uint8Array; height: number; attempts: number }> {
-  let attempts = 0;
+  let lastFit: Uint8Array | null = null;
 
-  const fits = async (height: number) => {
-    attempts += 1;
-    const pdf = await render(height);
-    return { pdf, single: (await pageCount(pdf)) === 1 };
-  };
+  const { value: height, attempts } = await growAndBisect(
+    async (candidate) => {
+      const pdf = await render(candidate);
+      const single = (await pageCount(pdf)) === 1;
+      if (single) lastFit = pdf;
+      return single;
+    },
+    initialGuess,
+    tolerance,
+  ).catch(() => {
+    throw new Error("could not fit the content onto one page");
+  });
 
-  let tooShort = 0;
-  let height = Math.ceil(initialGuess);
-  let best: { pdf: Uint8Array; height: number } | null = null;
-
-  for (let step = 0; step < 12 && best === null; step += 1) {
-    const { pdf, single } = await fits(height);
-    if (single) best = { pdf, height };
-    else {
-      tooShort = height;
-      height = Math.ceil(height * 1.35);
-    }
-  }
-  if (best === null) throw new Error("could not fit the content onto one page");
-
-  let low = tooShort;
-  let high = best.height;
-  while (high - low > tolerance) {
-    const middle = Math.round((low + high) / 2);
-    const { pdf, single } = await fits(middle);
-    if (single) {
-      best = { pdf, height: middle };
-      high = middle;
-    } else {
-      low = middle;
-    }
-  }
-
-  return { pdf: best.pdf, height: best.height, attempts };
+  // TypeScript narrows `lastFit` to its declared-null initializer here — it
+  // doesn't track the reassignment inside the callback above as reaching
+  // this point — even though `growAndBisect` only resolves once that
+  // callback has returned `true` at least once, which is exactly when
+  // `lastFit` was set. `unknown` is the compiler's own suggested escape for
+  // a cast it otherwise (correctly, in the general case) refuses.
+  return { pdf: lastFit as unknown as Uint8Array, height, attempts };
 }
 
 /**
@@ -157,7 +148,7 @@ export async function renderPhone(
  * whole chart, so the constant is the fixed chrome (masthead, the
  * disclaimer text) around one card instead of many.
  */
-function guessCardHeight(items: ResolvedInstruction[], variant: Variant): number {
+export function guessCardHeight(items: ResolvedInstruction[], variant: Variant): number {
   const length = (pick: (item: ResolvedInstruction) => string) =>
     items.reduce((total, item) => total + pick(item).length, 0);
 
@@ -223,7 +214,7 @@ const TIGHTEST = 0.7;
  * one page — and if even the tightest setting doesn't, accept it and let the
  * sheet flow onto a second page rather than shrinking type past the floor.
  */
-async function fittingDensity(
+export async function fittingDensity(
   items: ResolvedInstruction[],
   machine: Machine,
   variant: Variant,
@@ -237,14 +228,7 @@ async function fittingDensity(
   if (await fits(LOOSEST)) return LOOSEST;
   if (!(await fits(TIGHTEST))) return TIGHTEST;
 
-  let tight = TIGHTEST;
-  let loose = LOOSEST;
-  while (loose - tight > tolerance) {
-    const middle = (loose + tight) / 2;
-    if (await fits(middle)) tight = middle;
-    else loose = middle;
-  }
-  return tight;
+  return bisectBetween(fits, TIGHTEST, LOOSEST, tolerance);
 }
 
 /**

@@ -713,7 +713,7 @@ function Legend({ last = false, variant = "full" }: { last?: boolean; variant?: 
     >
       <View style={{ width: LEGEND_DIAL_SIZE, height: LEGEND_BOX_HEIGHT, alignItems: "center" }}>
         {variant === "iron" ? (
-          <IronDial setting={hottest} size={LEGEND_DIAL_SIZE} />
+          <IronDial setting={hottest} off={false} size={LEGEND_DIAL_SIZE} />
         ) : (
           <ProgramDial program={example} size={LEGEND_DIAL_SIZE} />
         )}

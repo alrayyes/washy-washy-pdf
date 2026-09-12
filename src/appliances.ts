@@ -12,10 +12,18 @@ import { createContext, useContext } from "react";
  */
 export const ApplianceContext = createContext<Machine | null>(null);
 
-export function useMachine(): Machine {
-  const machine = useContext(ApplianceContext);
+/**
+ * Plain function, not itself a hook — pulled out so the check has a form a
+ * test can call directly with `null`, rather than needing a real render
+ * tree (and react-pdf's own render pipeline) just to reach a throw.
+ */
+export function requireMachine(machine: Machine | null): Machine {
   if (!machine) {
     throw new Error("no machine in context — render inside <ApplianceContext.Provider>");
   }
   return machine;
+}
+
+export function useMachine(): Machine {
+  return requireMachine(useContext(ApplianceContext));
 }
