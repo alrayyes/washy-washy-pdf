@@ -389,6 +389,15 @@ export function cardChrome(compact: boolean) {
 function Card({
   group,
   index,
+  // Stryker disable next-line BooleanLiteral: confirmed equivalent, not
+  // merely hard to test — flipping this default produces byte-identical
+  // decompressed PDF content-stream output for every fixture this suite
+  // can construct (checked directly, not just a content-stream hash).
+  // cardChrome's own padding/marginBottom/headingSize values are still
+  // tested directly there; only "which one PrintDocument's default
+  // resolves to" is unobservable, since this card is the last thing
+  // before PrintDocument's fixed-position PageFooter and starts flush
+  // against a page whose own size doesn't depend on it either.
   compact = false,
   variant = "full",
 }: {
@@ -504,6 +513,9 @@ function Card({
 function IronCard({
   group,
   index,
+  // Stryker disable next-line BooleanLiteral: same confirmed equivalence
+  // as Card's own compact default above, checked the same way for this
+  // component directly (decompressed content stream, not just a hash).
   compact = false,
 }: {
   group: ResolvedInstruction[];
@@ -529,6 +541,11 @@ function IronCard({
         style={{
           flexDirection: "row",
           alignItems: "center",
+          // Stryker disable next-line StringLiteral: confirmed equivalent
+          // (decompressed content stream identical either way) — the
+          // heading Text right below has flex: 1, which already consumes
+          // every pixel space-between would otherwise distribute, leaving
+          // this row's own alignment with nothing left to act on.
           justifyContent: "space-between",
           borderBottomWidth: space.edgeWidth,
           borderBottomColor: colour.ink,
@@ -565,6 +582,11 @@ function IronCard({
         }}
       >
         <IronDial setting={item.ironSetting} off={!item.ironing} size={compact ? 54 : 62} />
+        {/* Stryker disable next-line ObjectLiteral: confirmed equivalent
+            (decompressed content stream identical either way) — this is
+            the row's last element, its text is left-aligned and short
+            enough never to wrap, and nothing after it depends on how
+            much of the row's own already-fixed width this box claims. */}
         <View style={{ flex: 1 }}>
           <Text style={{ fontFamily: font.bold, fontSize: type.emphasis, color: colour.ink }}>
             {setting ? `Thermostat on ${setting.label}` : "Leave the iron off"}
