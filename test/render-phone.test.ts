@@ -57,6 +57,14 @@ describe("card text, golden per cut", () => {
     expect(text).toContain("Cottons 60 °C · 1200 rpm");
   });
 
+  test("full: a spin of '0' reads 'no spin', not '0 rpm'", async () => {
+    const items = resolve([pile(1, { spin: "0" })]);
+    const text = (await pageText((await renderPrint(items, MACHINE, "full")).pdf)).join("\n");
+
+    expect(text).toContain("no spin");
+    expect(text).not.toContain("0 rpm");
+  });
+
   test("wash: the same fascia line renders, with no iron section heading", async () => {
     const items = resolve([pile(1, { temperature: "60", spin: "1200" })]);
     const text = (await pageText((await renderPrint(items, MACHINE, "wash")).pdf)).join("\n");
@@ -70,7 +78,31 @@ describe("card text, golden per cut", () => {
     const text = (await pageText((await renderPrint(items, MACHINE, "iron")).pdf)).join("\n");
 
     expect(text).toContain("High");
-    expect(text).toContain("steam zone");
+    expect(text).toContain("inside the steam zone");
+  });
+
+  test("iron: cards are numbered from 1, not 0 or negative", async () => {
+    const items = resolve([
+      pile(1, { ironing: true, ironSetting: "1" }),
+      pile(2, { clothingType: "Pile 2", ironing: true, ironSetting: "3" }),
+    ]);
+    const text = (await pageText((await renderPrint(items, MACHINE, "iron")).pdf)).join("\n");
+
+    expect(text).toContain("1. Low");
+    expect(text).toContain("2. High");
+  });
+
+  test("iron: a setting below the steam zone says so, not 'inside'", async () => {
+    // Setting "1" in the fixture machine has steam: false.
+    const items = resolve([pile(1, { ironing: true, ironSetting: "1" })]);
+    const text = (await pageText((await renderPrint(items, MACHINE, "iron")).pdf)).join("\n");
+
+    // The em dash doesn't survive pdf-lib's text extraction for this font
+    // (see documents.test.ts's "MixMatrix blocker legend" for the same
+    // issue), so this checks the text either side of it.
+    expect(text).toContain("below the steam zone");
+    expect(text).toContain("dry iron only");
+    expect(text).not.toContain("inside the steam zone");
   });
 
   test("iron: a never-ironed pile reads 'Do not iron', not a blank setting", async () => {
@@ -78,5 +110,26 @@ describe("card text, golden per cut", () => {
     const text = (await pageText((await renderPrint(items, MACHINE, "iron")).pdf)).join("\n");
 
     expect(text).toContain("Do not iron");
+    expect(text).toContain("Leave the iron off");
+    expect(text).toContain("nothing on this card ever goes near the board");
+    expect(text).toContain("NEVER THESE");
+  });
+
+  test("iron: a single ironed pile reads '1 pile', not '1 piles'", async () => {
+    const items = resolve([pile(1, { ironing: true, ironSetting: "3" })]);
+    const text = (await pageText((await renderPrint(items, MACHINE, "iron")).pdf)).join("\n");
+
+    expect(text).toContain("1 pile");
+    expect(text).not.toContain("1 piles");
+  });
+
+  test("iron: two ironed piles at the same setting read '2 piles'", async () => {
+    const items = resolve([
+      pile(1, { ironing: true, ironSetting: "3" }),
+      pile(2, { clothingType: "Pile 2", ironing: true, ironSetting: "3" }),
+    ]);
+    const text = (await pageText((await renderPrint(items, MACHINE, "iron")).pdf)).join("\n");
+
+    expect(text).toContain("2 piles");
   });
 });

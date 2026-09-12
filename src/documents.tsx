@@ -68,7 +68,12 @@ export function densityFont(base: number, density: number): number {
  */
 const PHONE_WIDTH = 244;
 
-function ironLabel(machine: Machine, item: ResolvedInstruction): string {
+/**
+ * Exported only so a test can call it directly — its result also ends up as
+ * a React `key` prop (`ironCardKey`'s own caller), which never appears in a
+ * rendered PDF for a full-render test to observe.
+ */
+export function ironLabel(machine: Machine, item: ResolvedInstruction): string {
   if (!item.ironing) return "do not iron";
   return ironSetting(machine, item.ironSetting)?.label ?? item.ironSetting;
 }
@@ -76,16 +81,22 @@ function ironLabel(machine: Machine, item: ResolvedInstruction): string {
 /**
  * What makes an ironing card unique. A pile you never iron has no thermostat
  * position, so every no-iron group would otherwise share the empty key.
+ *
+ * Exported only so a test can call it directly — a React `key` prop never
+ * appears in a rendered PDF for a full-render test to observe.
  */
-function ironCardKey(item: ResolvedInstruction): string {
+export function ironCardKey(item: ResolvedInstruction): string {
   return item.ironing ? item.ironSetting : "do-not-iron";
 }
 
 /**
  * How a sheet divides the chart into cards, which is not the same question on
  * each. See `cardGroups`, `washGroups` and `ironGroups` for why.
+ *
+ * Exported only so a test can call it directly with a bare `Variant` string,
+ * rather than needing a full render per variant to exercise the dispatch.
  */
-function sheetGroups(
+export function sheetGroups(
   items: ResolvedInstruction[],
   machine: Machine,
   variant: Variant,
@@ -243,6 +254,26 @@ const REFERENCE_CREDIT_MIN_PRESENCE_AHEAD = 100;
 const REFERENCE_CREDIT_PROTECTED_ROWS = 6;
 
 /**
+ * Whether `IronCard`'s row at `memberIndex` is one of the trailing rows that
+ * should ask react-pdf to keep it, everything after it, and the following
+ * `ReferenceCredit` together — `false` for the whole group when nothing in
+ * it carries a citation, since there's nothing to protect.
+ *
+ * `minPresenceAhead` (a layout hint, not rendered text) is invisible to a
+ * full-render test reading the PDF's text or ink, so this is pulled out on
+ * its own to be tested directly instead.
+ */
+export function protectsReferenceCredit(
+  memberIndex: number,
+  group: Pick<ResolvedInstruction, "referenceName">[],
+): boolean {
+  return (
+    memberIndex >= group.length - REFERENCE_CREDIT_PROTECTED_ROWS &&
+    group.some((item) => item.referenceName !== "")
+  );
+}
+
+/**
  * Who backs up a care instruction that isn't obvious from the garment
  * itself — "the label says 40°" doesn't need one, "the manufacturer says
  * wash these alone" might. `null` when nothing in the group cites anyone,
@@ -293,6 +324,59 @@ function ReferenceCredit({ items }: { items: ResolvedInstruction[] }) {
 }
 
 /**
+ * The "Wash together with" field's text — who else may share this card's
+ * drum, in whichever of four shapes fits the group's size and whether every
+ * member can mix with every other.
+ *
+ * Exported and pulled out of `Card` so a test can hit every branch (a lone
+ * pile with/without other compatible piles on the chart, a group that can
+ * all share a drum, a group that shares settings but can't) directly,
+ * rather than needing a full chart and render per case.
+ */
+export function washTogetherText(group: ResolvedInstruction[]): string {
+  const item = group[0] as ResolvedInstruction;
+  const names = new Set(group.map((member) => member.clothingType));
+  // Identical settings do not guarantee they may share a drum — the colour and
+  // lint rules are separate — so ask rather than assume.
+  const together = group.every((a) => group.every((b) => a === b || canMix(a, b)));
+  // Only piles that suit every member of the card, not just the first one.
+  const alsoWith = item.mixesWith.filter(
+    (name) => !names.has(name) && group.every((member) => member.mixesWith.includes(name)),
+  );
+
+  if (group.length > 1 && together) {
+    return `each other${alsoWith.length > 0 ? `, and ${alsoWith.join(", ")}` : ""}`;
+  }
+  if (group.length > 1) {
+    return "same settings, but wash these separately — see the matrix";
+  }
+  if (alsoWith.length > 0) {
+    return alsoWith.join(", ");
+  }
+  return "nothing else — wash alone";
+}
+
+/**
+ * The outer border's padding/margin and the heading's font size Card and
+ * IronCard both scale down for a single-pile phone/card download —
+ * identical in both, so shared rather than duplicated.
+ *
+ * Pure, so a test can pin the exact numbers directly: a single-pile
+ * fixture's rendered PDF doesn't reliably distinguish `compact` through
+ * either its extracted text (unaffected either way) or a content-stream
+ * hash (the surrounding page's own dimensions absorb the outer padding
+ * difference without shifting any drawn glyph's position in this specific
+ * one-card, one-page layout).
+ */
+export function cardChrome(compact: boolean) {
+  return {
+    padding: compact ? space.lg : space.xl,
+    marginBottom: compact ? space.lg : space.xxl,
+    headingSize: compact ? type.heading : type.headingLarge,
+  };
+}
+
+/**
  * One card, top to bottom: what it is, how the machine goes, iron, dry.
  *
  * `group` is usually a single pile. Where several piles are set up identically
@@ -305,7 +389,19 @@ function ReferenceCredit({ items }: { items: ResolvedInstruction[] }) {
 function Card({
   group,
   index,
+  // Stryker disable next-line BooleanLiteral: confirmed equivalent, not
+  // merely hard to test — flipping this default produces byte-identical
+  // decompressed PDF content-stream output for every fixture this suite
+  // can construct (checked directly, not just a content-stream hash).
+  // cardChrome's own padding/marginBottom/headingSize values are still
+  // tested directly there; only "which one PrintDocument's default
+  // resolves to" is unobservable, since this card is the last thing
+  // before PrintDocument's fixed-position PageFooter and starts flush
+  // against a page whose own size doesn't depend on it either.
   compact = false,
+  // Stryker disable next-line StringLiteral: unreachable — every call
+  // site (PhoneDocument, CardDocument, PrintDocument) always passes
+  // variant explicitly.
   variant = "full",
 }: {
   group: ResolvedInstruction[];
@@ -315,14 +411,7 @@ function Card({
 }) {
   const item = group[0] as ResolvedInstruction;
   const heading = group.map((member) => member.clothingType).join(" + ");
-  const names = new Set(group.map((member) => member.clothingType));
-  // Identical settings do not guarantee they may share a drum — the colour and
-  // lint rules are separate — so ask rather than assume.
-  const together = group.every((a) => group.every((b) => a === b || canMix(a, b)));
-  // Only piles that suit every member of the card, not just the first one.
-  const alsoWith = item.mixesWith.filter(
-    (name) => !names.has(name) && group.every((member) => member.mixesWith.includes(name)),
-  );
+  const chrome = cardChrome(compact);
 
   return (
     <View
@@ -330,8 +419,8 @@ function Card({
         borderWidth: space.edgeWidth,
         borderColor: colour.line,
         borderRadius: space.md,
-        padding: compact ? space.lg : space.xl,
-        marginBottom: compact ? space.lg : space.xxl,
+        padding: chrome.padding,
+        marginBottom: chrome.marginBottom,
       }}
     >
       <View
@@ -376,19 +465,7 @@ function Card({
       <ControlPanel item={item} dialSize={compact ? 68 : 78} />
 
       <SplitField label="Detergent" items={group} pick={(member) => member.detergent} />
-      <Field
-        label="Wash together with"
-        value={
-          group.length > 1 && together
-            ? `each other${alsoWith.length > 0 ? `, and ${alsoWith.join(", ")}` : ""}`
-            : group.length > 1
-              ? "same settings, but wash these separately — see the matrix"
-              : alsoWith.length > 0
-                ? alsoWith.join(", ")
-                : "nothing else — wash alone"
-        }
-        emphasis
-      />
+      <Field label="Wash together with" value={washTogetherText(group)} emphasis />
       <SplitField label="Drying" items={group} pick={(member) => member.drying} />
 
       {variant !== "wash" && (
@@ -439,6 +516,9 @@ function Card({
 function IronCard({
   group,
   index,
+  // Stryker disable next-line BooleanLiteral: same confirmed equivalence
+  // as Card's own compact default above, checked the same way for this
+  // component directly (decompressed content stream, not just a hash).
   compact = false,
 }: {
   group: ResolvedInstruction[];
@@ -448,6 +528,16 @@ function IronCard({
   const machine = useMachine();
   const item = group[0] as ResolvedInstruction;
   const setting = item.ironing ? ironSetting(machine, item.ironSetting) : undefined;
+  const chrome = cardChrome(compact);
+  // Stryker disable next-line ObjectLiteral: confirmed equivalent
+  // (decompressed content stream identical either way) — this is the
+  // thermostat row's last element, its text is left-aligned and short
+  // enough never to wrap, and nothing after it depends on how much of
+  // the row's own already-fixed width this box claims. A plain variable
+  // rather than an inline style object so this comment lands somewhere
+  // Stryker's own next-line detection actually reaches — {/* ... */}
+  // right before a JSX sibling doesn't suppress its neighbour.
+  const thermostatColumnStyle = { flex: 1 };
 
   return (
     <View
@@ -455,14 +545,19 @@ function IronCard({
         borderWidth: space.edgeWidth,
         borderColor: colour.line,
         borderRadius: space.md,
-        padding: compact ? space.lg : space.xl,
-        marginBottom: compact ? space.lg : space.xxl,
+        padding: chrome.padding,
+        marginBottom: chrome.marginBottom,
       }}
     >
       <View
         style={{
           flexDirection: "row",
           alignItems: "center",
+          // Stryker disable next-line StringLiteral: confirmed equivalent
+          // (decompressed content stream identical either way) — the
+          // heading Text right below has flex: 1, which already consumes
+          // every pixel space-between would otherwise distribute, leaving
+          // this row's own alignment with nothing left to act on.
           justifyContent: "space-between",
           borderBottomWidth: space.edgeWidth,
           borderBottomColor: colour.ink,
@@ -473,7 +568,7 @@ function IronCard({
         <Text
           style={{
             fontFamily: font.bold,
-            fontSize: compact ? type.heading : type.headingLarge,
+            fontSize: chrome.headingSize,
             color: colour.ink,
             flex: 1,
             paddingRight: 6,
@@ -499,7 +594,7 @@ function IronCard({
         }}
       >
         <IronDial setting={item.ironSetting} off={!item.ironing} size={compact ? 54 : 62} />
-        <View style={{ flex: 1 }}>
+        <View style={thermostatColumnStyle}>
           <Text style={{ fontFamily: font.bold, fontSize: type.emphasis, color: colour.ink }}>
             {setting ? `Thermostat on ${setting.label}` : "Leave the iron off"}
           </Text>
@@ -528,12 +623,17 @@ function IronCard({
           // and the citation together. One row's worth of protection
           // (#51's original fix) can itself be too short to clear the
           // near-blank floor when the dragged rows are themselves short.
-          const protectCredit =
-            memberIndex >= group.length - REFERENCE_CREDIT_PROTECTED_ROWS &&
-            group.some((item) => item.referenceName !== "");
+          const protectCredit = protectsReferenceCredit(memberIndex, group);
           return (
             <View
               key={member.clothingType}
+              // Stryker disable next-line StringLiteral: confirmed
+              // equivalent (decompressed content stream identical either
+              // way, checked with an ironingNotes long enough to wrap
+              // this row's flex: 1 note column onto several lines) —
+              // react-pdf draws each Text's own lines at its own
+              // top-anchored position regardless of the row's
+              // cross-axis alignment.
               style={{ flexDirection: "row", alignItems: "flex-start", marginTop: 1.5 }}
               {...(protectCredit ? { minPresenceAhead: REFERENCE_CREDIT_MIN_PRESENCE_AHEAD } : {})}
             >
@@ -690,14 +790,43 @@ function Loads({ items }: { items: ResolvedInstruction[] }) {
 const LEGEND_DIAL_SIZE = 54;
 const LEGEND_BOX_HEIGHT = 66;
 
+/**
+ * Legend's own worked example: the machine's first programme (drawn at
+ * twelve o'clock and named in the caption) and its second, or the first
+ * again if there's only one to show. Both fall back to "" for a machine
+ * with none — unreachable from a real config (`@washy-washy/core`'s
+ * `parseMachine` requires at least two programmes, same as `ProgramDial`'s
+ * own `dialStep`), but still reachable from a hand-built test fixture, so
+ * exported to be tested directly rather than needing one.
+ */
+export function legendExample(programs: string[]): { off: string; example: string } {
+  const off = programs[0] ?? "";
+  return { off, example: programs[1] ?? off };
+}
+
+/**
+ * The hottest iron setting Legend's own drawing shows a full ring at — a
+ * dial position, not text, so no full-render test can observe its fallback
+ * through the page's extracted text.
+ */
+export function legendHottestSetting(settings: { key: string }[]): string {
+  return settings[settings.length - 1]?.key ?? "";
+}
+
 /** How to read the dial drawings, printed once per document. */
-function Legend({ last = false, variant = "full" }: { last?: boolean; variant?: Variant }) {
+function Legend({
+  last = false,
+  // Stryker disable next-line StringLiteral: unreachable — both call sites
+  // (PhoneDocument, ReferenceSheet) always pass variant explicitly.
+  variant = "full",
+}: {
+  last?: boolean;
+  variant?: Variant;
+}) {
   const machine = useMachine();
   const { washer } = machine;
-  const off = washer.programs[0] ?? "";
-  const example = washer.programs[1] ?? off;
-  // The hottest position the iron offers, so the drawing shows a full ring.
-  const hottest = machine.iron.settings[machine.iron.settings.length - 1]?.key ?? "";
+  const { off, example } = legendExample(washer.programs);
+  const hottest = legendHottestSetting(machine.iron.settings);
 
   return (
     <View
@@ -894,7 +1023,10 @@ export interface Column {
 }
 
 /** The first clause of a sentence, which is all a table cell has room for. */
-function gist(prose: string): string {
+export function gist(prose: string): string {
+  // Stryker disable next-line StringLiteral: unreachable — String.split
+  // always returns at least one element (`"".split(/x/)` is `[""]`), so
+  // `[0]` is never undefined and `?? ""` never runs.
   return prose.split(/[—.:]/)[0]?.trim() ?? "";
 }
 
@@ -905,6 +1037,15 @@ function gist(prose: string): string {
  * the 14pt row-number gutter have to come to at most `TABLE_WIDTH_BUDGET` —
  * checked by `test/documents.test.ts`, not just this comment.
  */
+/**
+ * The reference sheet's iron-variant "Steam" column: "yes" only for a pile
+ * that's actually ironed, at a setting that's actually in the steam zone —
+ * "—" for a never-ironed pile and for one whose thermostat sits below it.
+ */
+export function steamColumnValue(machine: Machine, item: ResolvedInstruction): string {
+  return item.ironing && ironSetting(machine, item.ironSetting)?.steam ? "yes" : "—";
+}
+
 export function summaryColumns(machine: Machine, variant: Variant): Column[] {
   if (variant === "iron") {
     // No "why not / how" column — the ironingNotes it would gist are already
@@ -914,11 +1055,7 @@ export function summaryColumns(machine: Machine, variant: Variant): Column[] {
     return [
       { label: "Pile", width: 160, value: (i) => i.clothingType },
       { label: "Thermostat", width: 150, value: (i) => ironLabel(machine, i) },
-      {
-        label: "Steam",
-        width: 40,
-        value: (i) => (i.ironing && ironSetting(machine, i.ironSetting)?.steam ? "yes" : "—"),
-      },
+      { label: "Steam", width: 40, value: (i) => steamColumnValue(machine, i) },
     ];
   }
 
@@ -1038,7 +1175,14 @@ function SummaryTable({
 /** A bold "OK" — the widest thing a cell ever holds — still reads at this width. */
 export const MIN_MATRIX_CELL = 14;
 
-function MixMatrix({ items, density }: { items: ResolvedInstruction[]; density: number }) {
+/**
+ * `MixMatrix`'s own layout: how wide the row-label column and each square
+ * cell are, and how many columns fit in a block before the grid splits and
+ * stacks another one underneath. These are `View`/`Text` widths, not text —
+ * invisible to a full-render test reading a PDF's extracted text or ink —
+ * so it's exported and tested directly instead.
+ */
+export function matrixLayout(itemCount: number, density: number) {
   // Narrows with density like the summary table's columns, so a dense chart
   // spends its tightening on the grid too, not on type alone — it also frees
   // more of the row width for `cell`, the actual matrix squares.
@@ -1049,7 +1193,12 @@ function MixMatrix({ items, density }: { items: ResolvedInstruction[]; density: 
   // cells keep narrowing past legibility. Full-width columns still divide
   // available space evenly when there are few enough of them to fit.
   const columnsPerBlock = Math.max(1, Math.floor(available / MIN_MATRIX_CELL));
-  const cell = available / Math.min(items.length, columnsPerBlock);
+  const cell = available / Math.min(itemCount, columnsPerBlock);
+  return { labelWidth, available, columnsPerBlock, cell };
+}
+
+function MixMatrix({ items, density }: { items: ResolvedInstruction[]; density: number }) {
+  const { labelWidth, columnsPerBlock, cell } = matrixLayout(items.length, density);
   const used = new Set<Blocker>();
   for (const a of items)
     for (const b of items) {

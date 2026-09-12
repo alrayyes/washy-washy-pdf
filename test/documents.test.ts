@@ -1,13 +1,70 @@
 import { describe, expect, test } from "bun:test";
-import { resolve, variants } from "@washy-washy/core/browser";
+import { pdf } from "@react-pdf/renderer";
+import {
+  type ResolvedInstruction,
+  resolve,
+  type Variant,
+  variants,
+} from "@washy-washy/core/browser";
+import { PDFDocument } from "pdf-lib";
 import { pageInk } from "../scripts/screenshots";
-import { summaryColumns, TABLE_WIDTH_BUDGET } from "../src/documents";
-import { renderPrint } from "../src/render";
+import {
+  CardDocument,
+  cardChrome,
+  gist,
+  ironCardKey,
+  ironLabel,
+  legendExample,
+  legendHottestSetting,
+  MIN_MATRIX_CELL,
+  matrixLayout,
+  PhoneDocument,
+  PrintDocument,
+  protectsReferenceCredit,
+  ReferenceDocument,
+  sheetGroups,
+  steamColumnValue,
+  summaryColumns,
+  TABLE_WIDTH_BUDGET,
+  washTogetherText,
+} from "../src/documents";
+import { renderCard, renderPhone, renderPrint } from "../src/render";
 import { MACHINE, pile } from "./fixtures";
 import { inkPerPage, pageText } from "./pdf-text";
 
 /** Same gutter `SummaryTable` gives the row-number column. */
 const ROW_NUMBER_GUTTER = 14;
+
+describe("ironLabel", () => {
+  test("reads 'do not iron' for a never-ironed pile, whatever its ironSetting", () => {
+    const item = resolve([pile(1, { ironing: false, ironSetting: "2" })])[0] as ResolvedInstruction;
+    expect(ironLabel(MACHINE, item)).toBe("do not iron");
+  });
+
+  test("reads the machine's own label for a known ironSetting", () => {
+    const item = resolve([pile(1, { ironing: true, ironSetting: "2" })])[0] as ResolvedInstruction;
+    expect(ironLabel(MACHINE, item)).toBe("Medium");
+  });
+
+  test("falls back to the raw ironSetting key when the machine has no matching setting", () => {
+    const item = resolve([pile(1, { ironing: true, ironSetting: "9" })])[0] as ResolvedInstruction;
+    expect(ironLabel(MACHINE, item)).toBe("9");
+  });
+});
+
+describe("ironCardKey", () => {
+  test("is the ironSetting for an ironed pile", () => {
+    const item = resolve([pile(1, { ironing: true, ironSetting: "2" })])[0] as ResolvedInstruction;
+    expect(ironCardKey(item)).toBe("2");
+  });
+
+  test("is 'do-not-iron' for a never-ironed pile, so every no-iron group shares one key", () => {
+    const a = resolve([pile(1, { ironing: false, ironSetting: "1" })])[0] as ResolvedInstruction;
+    const b = resolve([pile(2, { ironing: false, ironSetting: "2" })])[0] as ResolvedInstruction;
+    expect(ironCardKey(a)).toBe("do-not-iron");
+    expect(ironCardKey(b)).toBe("do-not-iron");
+  });
+});
 
 describe("Card temperature", () => {
   // #10: the card hardcoded the Dutch "koud" for a cold wash instead of
@@ -31,6 +88,212 @@ describe("Card temperature", () => {
   });
 });
 
+describe("washTogetherText", () => {
+  test("a lone pile with nothing else on the chart washes alone", () => {
+    const items = resolve([pile(1)]);
+    expect(washTogetherText(items)).toBe("nothing else — wash alone");
+  });
+
+  test("a lone pile lists every other chart pile it may share a drum with, comma-separated", () => {
+    const items = resolve([
+      pile(1),
+      pile(2, { clothingType: "Pile 2" }),
+      pile(3, { clothingType: "Pile 3" }),
+    ]);
+    expect(washTogetherText(items.slice(0, 1))).toBe("Pile 2, Pile 3");
+  });
+
+  test("a group that can all share a drum reads 'each other'", () => {
+    const items = resolve([pile(1), pile(2, { clothingType: "Pile 2" })]);
+    expect(washTogetherText(items)).toBe("each other");
+  });
+
+  test("a group that can share a drum also lists other chart piles it may join, comma-separated", () => {
+    const items = resolve([
+      pile(1),
+      pile(2, { clothingType: "Pile 2" }),
+      pile(3, { clothingType: "Pile 3" }),
+      pile(4, { clothingType: "Pile 4" }),
+    ]);
+    expect(washTogetherText(items.slice(0, 2))).toBe("each other, and Pile 3, Pile 4");
+  });
+
+  test("only lists a chart pile that suits every member of the group, not just one", () => {
+    // Pile 1 is colour-group "any" (mixes with everything settings-compatible);
+    // Pile 2 is "white"; Pile 3 is "dark" — compatible with Pile 1 alone, so it
+    // must not appear even though one of the two group members would take it.
+    const items = resolve([
+      pile(1, { colourGroup: "any" }),
+      pile(2, { clothingType: "Pile 2", colourGroup: "white" }),
+      pile(3, { clothingType: "Pile 3", colourGroup: "dark" }),
+    ]);
+    expect(washTogetherText(items.slice(0, 2))).toBe("each other");
+  });
+
+  test("same settings but incompatible colours can't share a drum despite matching everything else", () => {
+    const items = resolve([
+      pile(1, { colourGroup: "white" }),
+      pile(2, { clothingType: "Pile 2", colourGroup: "dark" }),
+    ]);
+    expect(washTogetherText(items)).toBe(
+      "same settings, but wash these separately — see the matrix",
+    );
+  });
+});
+
+describe("sheetGroups", () => {
+  test("full variant (cardGroups) splits on wash settings and on ironSetting alike", () => {
+    const items = resolve([
+      pile(1, { temperature: "40", ironSetting: "1" }),
+      pile(2, { temperature: "40", ironSetting: "2" }),
+    ]);
+    expect(sheetGroups(items, MACHINE, "full").length).toBe(2);
+  });
+
+  test("wash variant merges piles that only disagree on ironSetting", () => {
+    const items = resolve([
+      pile(1, { temperature: "40", ironSetting: "1" }),
+      pile(2, { temperature: "40", ironSetting: "2" }),
+    ]);
+    expect(sheetGroups(items, MACHINE, "wash").length).toBe(1);
+  });
+
+  test("iron variant merges piles that only disagree on wash settings", () => {
+    const items = resolve([
+      pile(1, { temperature: "40", ironSetting: "1" }),
+      pile(2, { temperature: "60", ironSetting: "1" }),
+    ]);
+    expect(sheetGroups(items, MACHINE, "iron").length).toBe(1);
+  });
+});
+
+describe("protectsReferenceCredit", () => {
+  test("is false throughout when nothing in the group carries a citation", () => {
+    const group = Array.from({ length: 10 }, () => ({ referenceName: "" }));
+    for (let index = 0; index < group.length; index++) {
+      expect(protectsReferenceCredit(index, group)).toBe(false);
+    }
+  });
+
+  test("protects only the trailing REFERENCE_CREDIT_PROTECTED_ROWS rows when a citation exists", () => {
+    const group = Array.from({ length: 10 }, (_, index) =>
+      index === 0 ? { referenceName: "Manufacturer care guide" } : { referenceName: "" },
+    );
+
+    expect(protectsReferenceCredit(3, group)).toBe(false);
+    expect(protectsReferenceCredit(4, group)).toBe(true);
+    expect(protectsReferenceCredit(9, group)).toBe(true);
+  });
+
+  test("protects every row when the whole group is shorter than the protected window", () => {
+    const group = [{ referenceName: "Manufacturer care guide" }, { referenceName: "" }];
+
+    expect(protectsReferenceCredit(0, group)).toBe(true);
+    expect(protectsReferenceCredit(1, group)).toBe(true);
+  });
+});
+
+describe("cardChrome", () => {
+  test("compact scales the outer padding/margin and heading font size down", () => {
+    expect(cardChrome(true)).toEqual({ padding: 8, marginBottom: 8, headingSize: 11 });
+  });
+
+  test("non-compact (the default) is roomier throughout", () => {
+    expect(cardChrome(false)).toEqual({ padding: 10, marginBottom: 12, headingSize: 13 });
+  });
+});
+
+describe("matrixLayout", () => {
+  test("labelWidth and available narrow together with density", () => {
+    const layout = matrixLayout(2, 1);
+    expect(layout.labelWidth).toBe(118);
+    expect(layout.available).toBeCloseTo(405.28);
+  });
+
+  test("cell divides the available width by however many columns actually appear in a block", () => {
+    // Fewer items than fit in a block: cell is available / itemCount.
+    const wide = matrixLayout(2, 1);
+    expect(wide.columnsPerBlock).toBe(28);
+    expect(wide.cell).toBeCloseTo(202.64);
+
+    // More items than fit in a block: cell is available / columnsPerBlock,
+    // not available / itemCount — the same scenario
+    // overflow-guards.test.ts exercises through a full render (40 piles at
+    // density 0.7).
+    const narrow = matrixLayout(40, 0.7);
+    expect(narrow.columnsPerBlock).toBe(31);
+    expect(narrow.cell).toBeCloseTo(440.68 / 31);
+    expect(narrow.cell).toBeGreaterThanOrEqual(MIN_MATRIX_CELL);
+  });
+
+  test("columnsPerBlock never drops below 1, even when density leaves almost no room", () => {
+    const layout = matrixLayout(1, 4.4);
+    expect(layout.columnsPerBlock).toBe(1);
+  });
+});
+
+describe("gist", () => {
+  test("takes the text up to the first period, colon or em dash", () => {
+    expect(gist("Colour liquid detergent")).toBe("Colour liquid detergent");
+    expect(gist("Woolite — for delicates")).toBe("Woolite");
+    expect(gist("Non-bio: fragrance-free")).toBe("Non-bio");
+    expect(gist("Store bought. Keep sealed.")).toBe("Store bought");
+  });
+
+  test("trims surrounding whitespace off the clause", () => {
+    expect(gist("  Padded text  — extra")).toBe("Padded text");
+  });
+});
+
+describe("legendExample", () => {
+  test("off is the first programme, example is the second", () => {
+    expect(legendExample(["Cottons", "Synthetics", "Wool"])).toEqual({
+      off: "Cottons",
+      example: "Synthetics",
+    });
+  });
+
+  test("example falls back to off when there's only one programme to show", () => {
+    expect(legendExample(["Cottons"])).toEqual({ off: "Cottons", example: "Cottons" });
+  });
+
+  test("both fall back to '' for a machine with no programmes at all", () => {
+    expect(legendExample([])).toEqual({ off: "", example: "" });
+  });
+});
+
+describe("legendHottestSetting", () => {
+  test("is the last setting's key, coolest-to-hottest order", () => {
+    expect(legendHottestSetting([{ key: "1" }, { key: "2" }, { key: "3" }])).toBe("3");
+  });
+
+  test("falls back to '' for a machine with no iron settings at all", () => {
+    expect(legendHottestSetting([])).toBe("");
+  });
+});
+
+describe("steamColumnValue", () => {
+  test("is 'yes' for an ironed pile at a setting inside the steam zone", () => {
+    const item = resolve([pile(1, { ironing: true, ironSetting: "3" })])[0] as ResolvedInstruction;
+    expect(steamColumnValue(MACHINE, item)).toBe("yes");
+  });
+
+  test("is '—' for an ironed pile at a setting below the steam zone", () => {
+    const item = resolve([pile(1, { ironing: true, ironSetting: "1" })])[0] as ResolvedInstruction;
+    expect(steamColumnValue(MACHINE, item)).toBe("—");
+  });
+
+  test("is '—' for a never-ironed pile, whatever its ironSetting says", () => {
+    const item = resolve([pile(1, { ironing: false, ironSetting: "3" })])[0] as ResolvedInstruction;
+    expect(steamColumnValue(MACHINE, item)).toBe("—");
+  });
+
+  test("is '—' when the machine has no matching setting to check steam on", () => {
+    const item = resolve([pile(1, { ironing: true, ironSetting: "9" })])[0] as ResolvedInstruction;
+    expect(steamColumnValue(MACHINE, item)).toBe("—");
+  });
+});
+
 describe("summaryColumns", () => {
   // #15: the widths are laid out by hand, not flexed, so nothing stops them
   // drifting past the page's printable width except this test — the "full"
@@ -45,6 +308,52 @@ describe("summaryColumns", () => {
       expect(width).toBeLessThanOrEqual(TABLE_WIDTH_BUDGET);
     });
   }
+
+  test("Buttons reads '—' for a pile with no options selected", () => {
+    const column = summaryColumns(MACHINE, "full").find((c) => c.label === "Buttons");
+    if (!column) throw new Error("no Buttons column");
+    const item = resolve([pile(1, { options: [] })])[0] as ResolvedInstruction;
+
+    expect(column.value(item)).toBe("—");
+  });
+
+  test("Softener reads 'yes'/'no' to match whether the pile calls for one", () => {
+    const column = summaryColumns(MACHINE, "full").find((c) => c.label === "Softener");
+    if (!column) throw new Error("no Softener column");
+    const softened = resolve([pile(1, { fabricSoftener: true })])[0] as ResolvedInstruction;
+    const unsoftened = resolve([pile(2, { fabricSoftener: false })])[0] as ResolvedInstruction;
+
+    expect(column.value(softened)).toBe("yes");
+    expect(column.value(unsoftened)).toBe("no");
+  });
+});
+
+describe("MixMatrix blocker legend", () => {
+  test("a real blocker's row names its lowercased reason, not the original case", async () => {
+    const items = resolve([
+      pile(1, { colourGroup: "white" }),
+      pile(2, { clothingType: "Pile 2", colourGroup: "dark" }),
+    ]);
+    const text = (await pageText((await renderPrint(items, MACHINE)).pdf)).join("\n");
+
+    expect(text).toContain("colours would run into each other");
+    expect(text).not.toContain("Colours would run into each other");
+  });
+
+  // The em dash between a legend row's code and its reason doesn't survive
+  // pdf-lib's text extraction for this font (same reason #30's "empty
+  // referenceName" test above checks for its absence rather than its
+  // presence), so it's pinned by content-stream hash instead, same
+  // technique and reason as the "Legend"/"PhoneDocument content" tests.
+  test("a real blocker's row includes the em dash between its code and reason", async () => {
+    const items = resolve([
+      pile(1, { colourGroup: "white" }),
+      pile(2, { clothingType: "Pile 2", colourGroup: "dark" }),
+    ]);
+    const { pdf: bytes } = await renderPrint(items, MACHINE);
+
+    expect(await pageInk(bytes, 1)).toBe("a5ea2692dd61b4a8");
+  });
 });
 
 describe("card reference citation", () => {
@@ -88,6 +397,30 @@ describe("card reference citation", () => {
 
     expect(Buffer.from(bytes).toString("latin1")).not.toContain("/Subtype /Link");
   });
+
+  test("different citations within one shared-settings group are each attributed to their own pile", async () => {
+    const items = resolve([
+      pile(1, { referenceName: "Manufacturer care guide" }),
+      pile(2, { clothingType: "Pile 2", referenceName: "Fabric care label" }),
+    ]);
+    const text = (await pageText((await renderPrint(items, MACHINE)).pdf)).join("\n");
+
+    expect(text).toContain("Pile 1: Manufacturer care guide");
+    expect(text).toContain("Pile 2: Fabric care label");
+  });
+
+  // The multi-citation list's own marginTop is invisible to a text
+  // assertion — pinned by content-stream hash instead, same technique as
+  // this file's other "pinned" tests.
+  test("the multi-citation list renders the same layout bytes as last confirmed", async () => {
+    const items = resolve([
+      pile(1, { referenceName: "Manufacturer care guide" }),
+      pile(2, { clothingType: "Pile 2", referenceName: "Fabric care label" }),
+    ]);
+    const { pdf: bytes } = await renderPrint(items, MACHINE);
+
+    expect(await pageInk(bytes, 2)).toBe("6a18474c60f14e14");
+  });
 });
 
 describe("Loads bold-group caption", () => {
@@ -105,6 +438,13 @@ describe("Loads bold-group caption", () => {
     // the reference sheet's own section past one page leaves a near-blank
     // page behind rather than failing outright.
     expect((await inkPerPage(result.pdf)).filter((ink) => ink < 1000)).toEqual([]);
+  });
+
+  test("a pile that can't share a load with anyone reads '(on its own)', not bold", async () => {
+    const items = resolve([pile(1, { mixTags: ["solo"] })]);
+    const text = (await pageText((await renderPrint(items, MACHINE)).pdf)).join("\n");
+
+    expect(text).toContain("(on its own)");
   });
 });
 
@@ -160,4 +500,113 @@ describe("Legend", () => {
 
     expect(await pageInk(pdf, 1)).toBe("5458597462f7f323");
   });
+});
+
+describe("PhoneDocument content, pinned per cut", () => {
+  // Masthead, Loads, Legend and Card/IronCard all lay out with style props
+  // (flexDirection, alignItems, margins, Legend's own `last` default) that
+  // never show up in a PDF's extracted text — a mutation to any of them
+  // still passes every text-based assertion elsewhere in this file. Pinned
+  // by content-stream hash instead, same technique and same reason as the
+  // "Legend" test above. Recompute a hash only when one of those
+  // components' layout deliberately changes.
+  const hashes: Record<Variant, string> = {
+    full: "c0cbac76eb4918c2",
+    wash: "edd6535b010ab226",
+    iron: "b401d8ee41845eb8",
+  };
+
+  for (const variant of variants) {
+    test(`${variant}: renders the same layout bytes as last confirmed`, async () => {
+      const items = resolve([pile(1, { ironing: true, ironSetting: "3" })]);
+      const { pdf: bytes } = await renderPhone(items, MACHINE, variant);
+
+      expect(await pageInk(bytes, 1)).toBe(hashes[variant]);
+    });
+  }
+});
+
+describe("PhoneDocument and CardDocument", () => {
+  test("renderPhone's title says 'phone', renderCard's says 'card'", async () => {
+    const items = resolve([pile(1)]);
+    const phone = await PDFDocument.load((await renderPhone(items, MACHINE)).pdf);
+    const card = await PDFDocument.load((await renderCard(items, MACHINE)).pdf);
+
+    expect(phone.getTitle()).toContain("phone");
+    expect(card.getTitle()).toContain("card");
+  });
+
+  test("CardDocument renders IronCard for the iron variant, Card otherwise", async () => {
+    const items = resolve([pile(1, { ironing: true, ironSetting: "3" })]);
+    const iron = await renderCard(items, MACHINE, "iron");
+    const full = await renderCard(items, MACHINE, "full");
+
+    expect((await pageText(iron.pdf)).join("\n")).toContain("Thermostat on High");
+    expect((await pageText(full.pdf)).join("\n")).toContain("WASH TOGETHER WITH");
+  });
+
+  test('both default to variant "full" when called directly, without renderPhone/renderCard', async () => {
+    const items = resolve([pile(1)]);
+
+    const phoneBlob = await pdf(PhoneDocument({ items, height: 2000, machine: MACHINE })).toBlob();
+    const phoneText = (await pageText(new Uint8Array(await phoneBlob.arrayBuffer()))).join("\n");
+    expect(phoneText).toContain("WASH TOGETHER WITH");
+
+    const cardBlob = await pdf(CardDocument({ items, height: 2000, machine: MACHINE })).toBlob();
+    const cardText = (await pageText(new Uint8Array(await cardBlob.arrayBuffer()))).join("\n");
+    expect(cardText).toContain("WASH TOGETHER WITH");
+  });
+
+  test('ReferenceDocument and PrintDocument also default to variant "full" when called directly', async () => {
+    const items = resolve([pile(1)]);
+
+    const referenceBlob = await pdf(
+      ReferenceDocument({ items, machine: MACHINE, density: 1 }),
+    ).toBlob();
+    const referenceText = (await pageText(new Uint8Array(await referenceBlob.arrayBuffer()))).join(
+      "\n",
+    );
+    expect(referenceText).toContain("AT A GLANCE");
+    expect(referenceText).toContain("CAN THESE SHARE A LOAD");
+
+    const printBlob = await pdf(PrintDocument({ items, machine: MACHINE, density: 1 })).toBlob();
+    const printPages = await pageText(new Uint8Array(await printBlob.arrayBuffer()));
+    expect(printPages.join("\n")).toContain("AT A GLANCE");
+    expect(printPages.find((page) => page.includes("WASH TOGETHER WITH"))).toBeDefined();
+  });
+
+  // CardDocument's own Page padding is invisible to a text assertion, but
+  // (confirmed empirically, unlike Card/IronCard's own compact chrome
+  // above) does shift the drawn content — pinned by content-stream hash,
+  // same technique as the other "pinned per cut" tests in this file.
+  test("renderCard's own page style renders the same layout bytes as last confirmed", async () => {
+    const items = resolve([pile(1)]);
+    const { pdf: bytes } = await renderCard(items, MACHINE, "full");
+
+    expect(await pageInk(bytes, 1)).toBe("456bec80babf5383");
+  });
+});
+
+describe("PrintDocument content, pinned per cut", () => {
+  // ReferenceSheet's own layout (its marginTop before the legend row) and
+  // Card/IronCard's non-compact style props (PrintDocument is the one
+  // caller that renders either without compact) are, like PhoneDocument's
+  // own style props above, invisible to a full-render text assertion.
+  // Pinned by content-stream hash for the same reason.
+  const hashes: Record<Variant, string> = {
+    full: "a573d2e8d4755fd7",
+    wash: "6896d5183ddf897f",
+    // Same fixture and hash the "Legend" test above already pins — this
+    // one is pinning the whole page, that one specifically the dial state.
+    iron: "5458597462f7f323",
+  };
+
+  for (const variant of variants) {
+    test(`${variant}: renders the same layout bytes as last confirmed`, async () => {
+      const items = resolve([pile(1, { ironing: true, ironSetting: "3" })]);
+      const { pdf: bytes } = await renderPrint(items, MACHINE, variant);
+
+      expect(await pageInk(bytes, 1)).toBe(hashes[variant]);
+    });
+  }
 });
