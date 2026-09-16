@@ -63,6 +63,22 @@ fails if the two ever fall out of step.
 bun add @washy-washy/pdf @washy-washy/core react
 ```
 
+This package pins `@react-pdf/renderer` to `4.7.0` and overrides its
+transitive `@react-pdf/font` dependency to `4.0.11`, to keep raw `pdfkit`
+(which breaks under a flattened single-executable build such as
+`bun build --compile`) out of the resolved tree — see
+[#108](https://github.com/alrayyes/washy-washy-pdf/issues/108) and
+[#109](https://github.com/alrayyes/washy-washy-pdf/pull/109). That override
+only binds this package's own install: `@react-pdf/renderer@4.7.0` depends
+on `@react-pdf/font` via a caret range (`^4.0.11`), and npm's and Bun's
+`overrides` fields declared in a dependency's `package.json` don't
+propagate to a consumer's install. **A consumer building a flattened
+executable needs the same `"@react-pdf/font": "4.0.11"` override in its
+own `package.json`**, or a fresh install can still resolve
+`@react-pdf/font` to `4.1.0+` and pull raw `pdfkit` back in. Confirmed
+live on `washy-washy-cli`:
+[alrayyes/washy-washy-cli#234](https://github.com/alrayyes/washy-washy-cli/issues/234).
+
 ## Usage
 
 ```tsx
