@@ -1,3 +1,9 @@
+## [2.4.3](https://github.com/alrayyes/washy-washy-pdf/compare/v2.4.2...v2.4.3) (2026-09-16)
+
+### Bug Fixes
+
+* **deps:** pin @react-pdf/renderer to 4.7.0 and @react-pdf/font to 4.0.11 ([#109](https://github.com/alrayyes/washy-washy-pdf/issues/109)) ([0d4e3f3](https://github.com/alrayyes/washy-washy-pdf/commit/0d4e3f383538af4ac6c560aa9b37f7b55aa6822a)), closes [#108](https://github.com/alrayyes/washy-washy-pdf/issues/108)
+
 ## [2.4.2](https://github.com/alrayyes/washy-washy-pdf/compare/v2.4.1...v2.4.2) (2026-09-12)
 
 ### Bug Fixes
