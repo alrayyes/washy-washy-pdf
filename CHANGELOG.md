@@ -1,3 +1,9 @@
+## [2.4.5](https://github.com/alrayyes/washy-washy-pdf/compare/v2.4.4...v2.4.5) (2026-09-25)
+
+### Bug Fixes
+
+* **deps:** pause bun ecosystem in dependabot.yml, upstream can't parse it ([9b7ca80](https://github.com/alrayyes/washy-washy-pdf/commit/9b7ca80ed039e31fb65e4a9166d84df44ad1fc97)), closes [dependabot/dependabot-core#16071](https://github.com/dependabot/dependabot-core/issues/16071) [#113](https://github.com/alrayyes/washy-washy-pdf/issues/113)
+
 ## [2.4.4](https://github.com/alrayyes/washy-washy-pdf/compare/v2.4.3...v2.4.4) (2026-09-25)
 
 ### Bug Fixes
