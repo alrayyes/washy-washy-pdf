@@ -5,51 +5,58 @@
 version: 2
 
 updates:
-  - package-ecosystem: bun
-    directory: /
-    schedule:
-      interval: weekly
-    open-pull-requests-limit: 10
-    # A newly-published version gets a week to prove itself before
-    # Dependabot proposes it — a supply-chain compromise is usually caught
-    # or yanked well inside that window.
-    cooldown:
-      default-days: 7
-    commit-message:
-      # commitlint gates every commit that lands, and Dependabot's default
-      # subject is not a Conventional Commit. chore: is right for a dev
-      # dependency and deps: would release nothing, so production bumps say
-      # fix: and take a patch.
-      prefix: fix
-      prefix-development: chore
-      include: scope
-    ignore:
-      # Held at 9.x deliberately. 10.x exports the new-style preset config
-      # ({commits, parser, writer}) and @semantic-release/release-notes-generator
-      # 14 still reads writerOpts, so the notes come out as a version heading
-      # with nothing under it and no step fails. Dependabot bumps merge
-      # themselves here, so without this the fix would be undone by a bot.
-      # Lift it when the generator understands the new shape.
-      - dependency-name: conventional-changelog-conventionalcommits
-        update-types: ["version-update:semver-major"]
-    groups:
-      # One pull request for the linters rather than five. They move together,
-      # they are all development-only, and each one on its own is a review
-      # nobody learns anything from.
-      linters:
-        dependency-type: development
-        patterns:
-          - "@biomejs/*"
-          - "@commitlint/*"
-          - prettier
-          - markdownlint-cli2
-          - lefthook
-      # Grouping (even a group of one) keeps a major bump on Dependabot's
-      # lowercase group-title template instead of falling back to its
-      # sentence-case single-update one — see rules/releases.md.
-      bun-major:
-        patterns: ["*"]
-        update-types: [major]
+  # Paused: Dependabot's bundled bun binary can't parse this repo's
+  # bun.lock (lockfileVersion 2, what bun 1.4+ writes by default) --
+  # every weekly run fails before it even looks at what needs updating,
+  # so this ecosystem entry currently produces zero updates either way.
+  # Upstream bug, not ours: dependabot/dependabot-core#16026, fix open
+  # as dependabot/dependabot-core#16071 but not merged. Re-enable once
+  # that lands.
+  # - package-ecosystem: bun
+  #   directory: /
+  #   schedule:
+  #     interval: weekly
+  #   open-pull-requests-limit: 10
+  #   # A newly-published version gets a week to prove itself before
+  #   # Dependabot proposes it — a supply-chain compromise is usually caught
+  #   # or yanked well inside that window.
+  #   cooldown:
+  #     default-days: 7
+  #   commit-message:
+  #     # commitlint gates every commit that lands, and Dependabot's default
+  #     # subject is not a Conventional Commit. chore: is right for a dev
+  #     # dependency and deps: would release nothing, so production bumps say
+  #     # fix: and take a patch.
+  #     prefix: fix
+  #     prefix-development: chore
+  #     include: scope
+  #   ignore:
+  #     # Held at 9.x deliberately. 10.x exports the new-style preset config
+  #     # ({commits, parser, writer}) and @semantic-release/release-notes-generator
+  #     # 14 still reads writerOpts, so the notes come out as a version heading
+  #     # with nothing under it and no step fails. Dependabot bumps merge
+  #     # themselves here, so without this the fix would be undone by a bot.
+  #     # Lift it when the generator understands the new shape.
+  #     - dependency-name: conventional-changelog-conventionalcommits
+  #       update-types: ["version-update:semver-major"]
+  #   groups:
+  #     # One pull request for the linters rather than five. They move together,
+  #     # they are all development-only, and each one on its own is a review
+  #     # nobody learns anything from.
+  #     linters:
+  #       dependency-type: development
+  #       patterns:
+  #         - "@biomejs/*"
+  #         - "@commitlint/*"
+  #         - prettier
+  #         - markdownlint-cli2
+  #         - lefthook
+  #     # Grouping (even a group of one) keeps a major bump on Dependabot's
+  #     # lowercase group-title template instead of falling back to its
+  #     # sentence-case single-update one — see rules/releases.md.
+  #     bun-major:
+  #       patterns: ["*"]
+  #       update-types: [major]
 
   - package-ecosystem: github-actions
     directory: /
