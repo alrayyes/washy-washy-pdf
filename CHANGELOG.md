@@ -1,3 +1,9 @@
+## [2.4.4](https://github.com/alrayyes/washy-washy-pdf/compare/v2.4.3...v2.4.4) (2026-09-25)
+
+### Bug Fixes
+
+* pin bun below 1.4 so Dependabot's bun updater stops erroring ([1b1411a](https://github.com/alrayyes/washy-washy-pdf/commit/1b1411a6ada6c93ac65a9d6abf90bde2163565e3)), closes [Hush-Hush#125](https://github.com/alrayyes/Hush-Hush/issues/125) [forge-dashboard#98](https://github.com/alrayyes/forge-dashboard/issues/98) [pipeline-analytics#31](https://github.com/alrayyes/pipeline-analytics/issues/31) [#113](https://github.com/alrayyes/washy-washy-pdf/issues/113)
+
 ## [2.4.3](https://github.com/alrayyes/washy-washy-pdf/compare/v2.4.2...v2.4.3) (2026-09-16)
 
 ### Bug Fixes
