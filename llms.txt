@@ -1,0 +1,40 @@
+# @washy-washy/pdf
+
+> The `@react-pdf/renderer` components that draw a laundry chart into a PDF —
+> the phone sheet, the print sheet, and the per-pile reference cards — plus
+> the layout-fitting logic that bisects each one until it lands on exactly
+> one page. Published to npm as `@washy-washy/pdf`, licensed
+> GPL-3.0-or-later.
+
+It renders a resolved chart from [`@washy-washy/core`](https://github.com/alrayyes/washy-washy-core)
+against a `Machine` description of the washer and iron it's drawn for.
+`renderPhone`, `renderPrint`, and `renderCard` are the main entry points;
+`PhoneDocument`, `PrintDocument`, `ReferenceDocument`, and `CardDocument`
+are exported directly for use with a caller's own
+`@react-pdf/renderer` pipeline. This is the rendering half of
+[washy-washy-cli](https://github.com/alrayyes/washy-washy-cli), split out
+so it can be depended on without the CLI's Bun-specific tooling.
+
+## Docs
+
+- [API reference](https://alrayyes.github.io/washy-washy-pdf/): every
+  export, its signature, and a runnable example, generated with TypeDoc.
+- [README](https://github.com/alrayyes/washy-washy-pdf#readme):
+  installation, usage, and the rendered example sheets.
+- [CONTRIBUTING](https://github.com/alrayyes/washy-washy-pdf/blob/main/CONTRIBUTING.md):
+  commands, linters, tests, git hooks, and how a release is cut.
+
+## Package
+
+- [npm: @washy-washy/pdf](https://www.npmjs.com/package/@washy-washy/pdf):
+  install and version history.
+- [Source repository](https://github.com/alrayyes/washy-washy-pdf): issues,
+  pull requests, and the full history.
+
+## Related
+
+- [@washy-washy/core](https://alrayyes.github.io/washy-washy-core/): the
+  data half — chart parsing, mixing rules, machine validation — that this
+  package renders.
+- [washy-washy-cli](https://github.com/alrayyes/washy-washy-cli): the CLI
+  this package's rendering was split out of.
