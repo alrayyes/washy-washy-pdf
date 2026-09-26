@@ -1,3 +1,9 @@
+## [2.5.1](https://github.com/alrayyes/washy-washy-pdf/compare/v2.5.0...v2.5.1) (2026-09-26)
+
+### Bug Fixes
+
+* **deps:** pin typescript to 6.0.3, typedoc has no TS7 support yet ([e8e9e84](https://github.com/alrayyes/washy-washy-pdf/commit/e8e9e84f09342fc89fd3cfd69623e1171272902d)), closes [#94](https://github.com/alrayyes/washy-washy-pdf/issues/94) [TypeStrong/typedoc#3098](https://github.com/TypeStrong/typedoc/issues/3098) [dependabot-core#16026](https://github.com/alrayyes/dependabot-core/issues/16026) [#118](https://github.com/alrayyes/washy-washy-pdf/issues/118)
+
 ## [2.5.0](https://github.com/alrayyes/washy-washy-pdf/compare/v2.4.5...v2.5.0) (2026-09-26)
 
 ### Features
