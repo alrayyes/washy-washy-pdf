@@ -26,6 +26,12 @@ jobs:
         with:
           bun-version: 1.3.14
       - run: bun install --frozen-lockfile
+      # TypeDoc builds its TS program from tsconfig.json, which has no
+      # include/files of its own — so the program covers every .ts file in
+      # the repo, not just typedoc.json's entryPoints, and a type error
+      # anywhere in it fails the whole run. test/index.test-d.ts imports
+      # from dist/, so it has to exist first (washy-washy-pdf#121).
+      - run: bun run build
       - run: bun run docs
       # TypeDoc has no option to copy an arbitrary static file to the
       # output root — its own `media` directory feature is for images
