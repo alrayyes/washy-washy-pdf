@@ -1,3 +1,9 @@
+## [2.5.2](https://github.com/alrayyes/washy-washy-pdf/compare/v2.5.1...v2.5.2) (2026-09-26)
+
+### Bug Fixes
+
+* **ci:** build dist before running typedoc in the docs workflow ([63a93d9](https://github.com/alrayyes/washy-washy-pdf/commit/63a93d995a727c64b28b148672d24e6ccfeca19e)), closes [#118](https://github.com/alrayyes/washy-washy-pdf/issues/118) [#121](https://github.com/alrayyes/washy-washy-pdf/issues/121)
+
 ## [2.5.1](https://github.com/alrayyes/washy-washy-pdf/compare/v2.5.0...v2.5.1) (2026-09-26)
 
 ### Bug Fixes
