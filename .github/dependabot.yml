@@ -39,6 +39,14 @@ updates:
   #     # Lift it when the generator understands the new shape.
   #     - dependency-name: conventional-changelog-conventionalcommits
   #       update-types: ["version-update:semver-major"]
+  #     # Held below 7.x deliberately (#94 bumped it there and broke the docs
+  #     # workflow for two weeks: typedoc@0.28.20's TS integration reads
+  #     # compiler-API internals TypeScript 7's rewrite doesn't ship, and
+  #     # typedoc has no stable release supporting it yet — see #118 and
+  #     # TypeStrong/typedoc#3098 upstream. Lift it once typedoc publishes a
+  #     # TS7-compatible release.
+  #     - dependency-name: typescript
+  #       update-types: ["version-update:semver-major"]
   #   groups:
   #     # One pull request for the linters rather than five. They move together,
   #     # they are all development-only, and each one on its own is a review
