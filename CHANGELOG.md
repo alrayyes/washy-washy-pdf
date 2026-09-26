@@ -1,3 +1,9 @@
+## [2.5.0](https://github.com/alrayyes/washy-washy-pdf/compare/v2.4.5...v2.5.0) (2026-09-26)
+
+### Features
+
+* **docs:** publish an llms.txt at the docs site root ([12409e8](https://github.com/alrayyes/washy-washy-pdf/commit/12409e8613e14fc2f3343dc0875048a2c3f69733)), closes [#117](https://github.com/alrayyes/washy-washy-pdf/issues/117)
+
 ## [2.4.5](https://github.com/alrayyes/washy-washy-pdf/compare/v2.4.4...v2.4.5) (2026-09-25)
 
 ### Bug Fixes
