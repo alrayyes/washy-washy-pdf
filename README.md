@@ -7,7 +7,7 @@ do not add one that reads "unknown".
 [![Codecov](https://codecov.io/gh/alrayyes/washy-washy-pdf/graph/badge.svg)](https://codecov.io/gh/alrayyes/washy-washy-pdf)
 [![release](https://github.com/alrayyes/washy-washy-pdf/actions/workflows/release.yml/badge.svg?branch=main)](https://github.com/alrayyes/washy-washy-pdf/actions/workflows/release.yml)
 [![npm](https://img.shields.io/npm/v/@washy-washy/pdf)](https://www.npmjs.com/package/@washy-washy/pdf)
-[![docs](https://github.com/alrayyes/washy-washy-pdf/actions/workflows/docs.yml/badge.svg?branch=main)](https://alrayyes.github.io/washy-washy-pdf/)
+[![docs](https://img.shields.io/website?url=https%3A%2F%2Fapis.ryankes.eu%2Fwashy-washy-pdf%2F&label=docs)](https://apis.ryankes.eu/washy-washy-pdf/)
 [![licence: GPL v3+](https://img.shields.io/badge/licence-GPL--3.0--or--later-blue.svg)](LICENSE)
 
 # @washy-washy/pdf
@@ -117,6 +117,16 @@ example — is generated with TypeDoc and published at
 [`alrayyes.github.io/washy-washy-pdf`](https://alrayyes.github.io/washy-washy-pdf/).
 `@washy-washy/core`'s own reference lives at
 [`alrayyes.github.io/washy-washy-core`](https://alrayyes.github.io/washy-washy-core/).
+
+## Reports
+
+Every push to `main` publishes its test and coverage reports next to the API reference:
+
+- [Test results](https://apis.ryankes.eu/washy-washy-pdf/reports/tests/unit.xml) (JUnit XML)
+- [Coverage](https://apis.ryankes.eu/washy-washy-pdf/reports/coverage/), with
+  [`coverage.xml`](https://apis.ryankes.eu/washy-washy-pdf/reports/coverage/coverage.xml) (Cobertura)
+  and [`lcov.info`](https://apis.ryankes.eu/washy-washy-pdf/reports/coverage/lcov.info)
+- [Index](https://apis.ryankes.eu/washy-washy-pdf/reports/), with the commit and date
 
 ## Contributing
 
