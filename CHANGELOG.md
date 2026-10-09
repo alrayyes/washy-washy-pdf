@@ -1,3 +1,9 @@
+## [2.6.0](https://github.com/alrayyes/washy-washy-pdf/compare/v2.5.2...v2.6.0) (2026-10-09)
+
+### Features
+
+* **ci:** publish test and coverage reports with the docs ([#126](https://github.com/alrayyes/washy-washy-pdf/issues/126)) ([6ca9f6e](https://github.com/alrayyes/washy-washy-pdf/commit/6ca9f6e7e328e6ed28965985384406cf9a73a56b))
+
 ## [2.5.2](https://github.com/alrayyes/washy-washy-pdf/compare/v2.5.1...v2.5.2) (2026-09-26)
 
 ### Bug Fixes
