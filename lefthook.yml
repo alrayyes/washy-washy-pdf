@@ -25,7 +25,10 @@ pre-commit:
             stage_fixed: true
           - name: markdownlint
             glob: "*.md"
-            run: bunx --bun markdownlint-cli2 {staged_files}
+            # --no-globs: .markdownlint-cli2.yaml sets globs for the full-tree
+            # lint:md, and markdownlint-cli2 adds those to the command line, so
+            # without it every commit lints the whole tree.
+            run: bunx --bun markdownlint-cli2 --no-globs {staged_files}
     # Biome does not read YAML, so the workflows and this file are Prettier's
     # too. Nothing judges the result afterwards the way markdownlint judges the
     # Markdown, so it is one job rather than a pipe.
