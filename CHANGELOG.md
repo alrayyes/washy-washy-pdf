@@ -1,3 +1,9 @@
+## [2.6.2](https://github.com/alrayyes/washy-washy-pdf/compare/v2.6.1...v2.6.2) (2026-10-10)
+
+### Performance Improvements
+
+* count pages without pdf-lib ([#131](https://github.com/alrayyes/washy-washy-pdf/issues/131)) ([322ca56](https://github.com/alrayyes/washy-washy-pdf/commit/322ca560e61ef0378ee010d60c6c71df9aff2650)), closes [#130](https://github.com/alrayyes/washy-washy-pdf/issues/130)
+
 ## [2.6.1](https://github.com/alrayyes/washy-washy-pdf/compare/v2.6.0...v2.6.1) (2026-10-10)
 
 ### Bug Fixes
