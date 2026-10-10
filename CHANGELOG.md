@@ -1,3 +1,9 @@
+## [2.6.1](https://github.com/alrayyes/washy-washy-pdf/compare/v2.6.0...v2.6.1) (2026-10-10)
+
+### Bug Fixes
+
+* **hooks:** lint only staged Markdown in pre-commit ([868afcc](https://github.com/alrayyes/washy-washy-pdf/commit/868afcc1c41a898475a1c61a9c21500adc66117b)), closes [#127](https://github.com/alrayyes/washy-washy-pdf/issues/127)
+
 ## [2.6.0](https://github.com/alrayyes/washy-washy-pdf/compare/v2.5.2...v2.6.0) (2026-10-09)
 
 ### Features
