@@ -5,7 +5,7 @@ files, runs no server, opens no socket, and sends nothing anywhere on its
 own.
 
 That said, it does run content you did not write through a PDF renderer
-(`@react-pdf/renderer`) and a PDF library (`pdf-lib`), and it downloads
+(`@react-pdf/renderer`), and it downloads
 pinned tooling over the network at install and lint time.
 
 ## Reporting a Vulnerability

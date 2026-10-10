@@ -7,19 +7,15 @@ import {
   type Variant,
   washGroups,
 } from "@washy-washy/core/browser";
-import { PDFDocument } from "pdf-lib";
 import type { ReactElement } from "react";
 import { CardDocument, PhoneDocument, PrintDocument, ReferenceDocument } from "./documents";
 import { bisectBetween, growAndBisect } from "./fitting";
+import { countPages } from "./page-count";
 import { sanitizeInstructions, sanitizeMachine } from "./sanitize";
 
 /** Merges two `dropped` lists into one, keeping each distinct character once. */
 function mergeDropped(a: string[], b: string[]): string[] {
   return [...new Set([...a, ...b])];
-}
-
-async function pageCount(bytes: Uint8Array): Promise<number> {
-  return (await PDFDocument.load(bytes)).getPageCount();
 }
 
 /**
@@ -94,7 +90,7 @@ export async function fitToOnePage(
   const { value: height, attempts } = await growAndBisect(
     async (candidate) => {
       const pdf = await render(candidate);
-      const single = (await pageCount(pdf)) === 1;
+      const single = countPages(pdf) === 1;
       if (single) lastFit = pdf;
       return single;
     },
@@ -222,7 +218,7 @@ export async function fittingDensity(
 ): Promise<number> {
   const fits = async (density: number) => {
     const bytes = await renderToBytes(ReferenceDocument({ items, machine, density, variant }));
-    return (await pageCount(bytes)) === 1;
+    return countPages(bytes) === 1;
   };
 
   if (await fits(LOOSEST)) return LOOSEST;
