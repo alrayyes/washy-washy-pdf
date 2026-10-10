@@ -5,7 +5,9 @@ import { fitToOnePage } from "../src/render";
 async function pdfWithPages(count: number): Promise<Uint8Array> {
   const doc = await PDFDocument.create();
   for (let i = 0; i < count; i += 1) doc.addPage();
-  return doc.save();
+  // Plain objects: countPages reads page dictionaries, which pdf-lib would
+  // otherwise pack into object streams.
+  return doc.save({ useObjectStreams: false });
 }
 
 describe("fitToOnePage", () => {
