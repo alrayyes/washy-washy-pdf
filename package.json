@@ -42,7 +42,13 @@
   },
   "overrides": {
     "@react-pdf/font": "4.0.11",
-    "qs": "6.16.0"
+    "handlebars": "4.7.10",
+    "http-cache-semantics": "4.3.0",
+    "js-yaml": "5.4.3",
+    "katex": "0.19.0",
+    "markdown-it": "14.3.3",
+    "qs": "6.16.0",
+    "smol-toml": "1.9.0"
   },
   "dependencies": {
     "@react-pdf/renderer": "4.7.0",
