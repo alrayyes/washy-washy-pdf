@@ -1,3 +1,9 @@
+## [2.6.3](https://github.com/alrayyes/washy-washy-pdf/compare/v2.6.2...v2.6.3) (2026-10-16)
+
+### Bug Fixes
+
+* **deps:** override handlebars, http-cache-semantics, smol-toml, markdown-it, katex and js-yaml ([#138](https://github.com/alrayyes/washy-washy-pdf/issues/138)) ([e4e491e](https://github.com/alrayyes/washy-washy-pdf/commit/e4e491e4d0944a97a98cc8abb115c824121458ea)), closes [#134](https://github.com/alrayyes/washy-washy-pdf/issues/134)
+
 ## [2.6.2](https://github.com/alrayyes/washy-washy-pdf/compare/v2.6.1...v2.6.2) (2026-10-10)
 
 ### Performance Improvements
