@@ -1,3 +1,9 @@
+## [2.6.4](https://github.com/alrayyes/washy-washy-pdf/compare/v2.6.3...v2.6.4) (2026-10-16)
+
+### Bug Fixes
+
+* **deps:** pin npm to 11.21.1 so its bundled http-cache-semantics is 4.3.0 ([#139](https://github.com/alrayyes/washy-washy-pdf/issues/139)) ([49227f1](https://github.com/alrayyes/washy-washy-pdf/commit/49227f1bb6799b0a3c31dfb6217f5a23656ec166))
+
 ## [2.6.3](https://github.com/alrayyes/washy-washy-pdf/compare/v2.6.2...v2.6.3) (2026-10-16)
 
 ### Bug Fixes
