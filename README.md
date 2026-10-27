@@ -134,6 +134,8 @@ Everything about working on this — the commands, the linters, the tests, the
 git hooks and how a release is cut — is in
 [CONTRIBUTING.md](CONTRIBUTING.md). Short version: `bun run check` before you
 push, commit under [Conventional Commits](https://www.conventionalcommits.org/).
+[gitleaks](https://github.com/gitleaks/gitleaks) scans for secrets in the git
+hooks and in CI, so it has to be on your `PATH`.
 
 ## Licence
 

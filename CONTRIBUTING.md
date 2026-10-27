@@ -63,6 +63,9 @@ to forget and no clone that quietly has no hooks. `prose:sync` is separate
 because Vale is a Go binary rather than a package — it checks the release
 against its own checksums, and it wants network access and `tar`, once.
 
+[gitleaks](https://github.com/gitleaks/gitleaks) has to be on your `PATH`. It
+is a Go binary the hooks call directly, and nothing here installs it.
+
 `@washy-washy/core` is this package's one dependency, and until it has its own
 first npm release, `bun install` here resolves it against whatever range is
 currently pinned in `package.json` — which may be a placeholder. Point it at a
@@ -134,14 +137,15 @@ overflows.
 ## The git hooks
 
 `lefthook.yml` runs the same commands CI does, so the two cannot drift. On
-commit, Biome, Prettier and markdownlint fix what they can over the staged
-files and restage it, Vale checks the prose for errors, and commitlint reads
+commit, gitleaks scans the staged changes for secrets, Biome, Prettier and
+markdownlint fix what they can over the staged files and restage it, Vale checks the prose for errors, and commitlint reads
 the message. On push, every linter runs again in check mode over the whole
-tree, followed by the typecheck and the tests — nothing at that point writes,
+tree and gitleaks scans the whole history, followed by the typecheck and the tests — nothing at that point writes,
 so the commit you push is the one you reviewed.
 
 Every hook is skippable with `--no-verify`, which is why CI checks the same
-things again and why the message check runs a second time over the whole
+things again (gitleaks runs in its own `gitleaks` workflow, unfiltered, over
+a full-depth checkout) and why the message check runs a second time over the whole
 range of a pull request. These messages decide the version a release tool
 picks, so they are worth a gate rather than only a reminder.
 
