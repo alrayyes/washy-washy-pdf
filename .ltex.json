@@ -16,6 +16,7 @@
       "commitlint",
       "filesystem",
       "gitignored",
+      "gitleaks",
       "lefthook",
       "linted",
       "lockfile",

@@ -2,6 +2,8 @@
 pre-commit:
   parallel: true
   jobs:
+    - name: gitleaks
+      run: gitleaks git --staged --redact --no-banner
     - name: biome
       glob: "*.{js,jsx,ts,tsx,json,jsonc,css}"
       run: bunx --bun biome check --write --no-errors-on-unmatched --files-ignore-unknown=true {staged_files}
@@ -62,6 +64,10 @@ commit-msg:
 pre-push:
   parallel: true
   jobs:
+    # The whole history rather than the unpushed range: it takes well under a
+    # second at this size, and CI does the same (rules/secrets.md).
+    - name: gitleaks
+      run: gitleaks git --redact --no-banner
     - name: biome
       run: bun run lint
     - name: markdownlint
