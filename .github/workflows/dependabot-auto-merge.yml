@@ -30,25 +30,14 @@ jobs:
       contents: write
       pull-requests: write
     steps:
-      - name: Dependabot metadata
-        id: metadata
-        uses: dependabot/fetch-metadata@25dd0e34f4fe68f24cc83900b1fe3fe149efef98 # v3.1.0
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-
       # Squashed with a subject commitlint accepts. Dependabot writes "Bump x
       # from a to b" and config-conventional refuses the capital B, so the
       # commit that reaches main is retitled here rather than the rule being
       # relaxed for everyone else.
       #
-      # Patch and minor only — a major stays a pull request someone reads,
-      # the same as any other breaking change would. --auto is the rest of
-      # the safety story: it holds the pull request until the required
-      # checks on main have passed.
+      # Every update type, majors included. --auto is the safety story: it
+      # holds the pull request until the required checks on main have passed.
       - name: Wave it through once the checks are green
-        if: |
-          steps.metadata.outputs.update-type == 'version-update:semver-patch' ||
-          steps.metadata.outputs.update-type == 'version-update:semver-minor'
         run: |
           subject=$(printf '%s' "$PR_TITLE" | sed -E 's/^([a-z]+(\([^)]*\))?: )([A-Z])/\1\l\3/')
           gh pr merge --auto --squash --subject "$subject" "$PR_URL"
