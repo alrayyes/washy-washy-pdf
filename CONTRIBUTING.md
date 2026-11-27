@@ -83,8 +83,8 @@ bun test                   # just the tests
 ```
 
 Two formatters, split by file type and never overlapping. Biome owns
-everything it supports; Markdown and YAML are what it does not format, so
-those go to Prettier and `.prettierignore` names the file types Prettier must
+everything it supports except Markdown, which `biome.json` excludes. That and
+YAML go to Prettier and `.prettierignore` names the file types Prettier must
 keep its hands off. Prettier runs before markdownlint, never after — Prettier
 decides the layout and markdownlint judges what came out, so the rules the two
 would argue over (list markers, list indentation, emphasis characters) are
