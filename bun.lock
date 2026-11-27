@@ -6,7 +6,7 @@
       "name": "@washy-washy/pdf",
       "dependencies": {
         "@react-pdf/renderer": "4.7.0",
-        "@washy-washy/core": "1.6.4",
+        "@washy-washy/core": "2.0.1",
         "react": "19.3.1",
       },
       "devDependencies": {
@@ -367,7 +367,7 @@
 
     "@types/unist": ["@types/unist@2.0.11", "", {}, "sha512-CmBKiL6NNo/OqgmMn95Fk9Whlp2mtvIv+KNpQKN2F4SjvrEesubTRWGYSg+BnWZOnlCaSTU1sMpsBOzgbYhnsA=="],
 
-    "@washy-washy/core": ["@washy-washy/core@1.6.4", "", { "dependencies": { "csv-parse": "7.0.3" } }, "sha512-PkQ5JX+lbN3yjsNM44Fs1+YUQ7XAptyDQk+V7mDw6ftfjeHeclCJsWVmcwd1/mPnjz1yrA/in9pb99It6nbyPA=="],
+    "@washy-washy/core": ["@washy-washy/core@2.0.1", "", {}, "sha512-P/zHU8tjoN+Y1q5bMy4HlQExe8xdUkzAFONEY+1MIyqoC8CvbNBTSlX3nG61UljU0i4UzRyZE1687NUAgdCclA=="],
 
     "@yuku-toolchain/darwin-arm64": ["@yuku-toolchain/darwin-arm64@0.28.1", "", { "os": "darwin", "cpu": "arm64" }, "sha512-xMtZUwiGvJH90ogLjRrnG5+YEhinKti8qMPF18bd5z0ahSoaHWyBoe16evT7cSUxid0JEaZvh6H3daDPwDw4+g=="],
 
@@ -470,8 +470,6 @@
     "cross-spawn": ["cross-spawn@7.0.6", "", { "dependencies": { "path-key": "^3.1.0", "shebang-command": "^2.0.0", "which": "^2.0.1" } }, "sha512-uV2QOWP2nWzsy2aMp8aRibhi9dlzF5Hgh5SHaB9OiTGEyDTiJJyx0uy51QXdyWbtAHNua4XJzUKca3OzKUd3vA=="],
 
     "csstype": ["csstype@3.2.3", "", {}, "sha512-z1HGKcYy2xA8AGQfwrn0PAy+PB7X/GSj3UVJW9qKyn43xWa+gl5nXmU4qqLMRzWVLFC8KusUX8T/0kCiOYpAIQ=="],
-
-    "csv-parse": ["csv-parse@7.0.3", "", {}, "sha512-YFd3QM/yo17vH91L1IOZuvl09zM0zEEtdfTcOCKWcMdM++MNaQSyp09slXyFCLaPXvHstQFx/xC8myiFHSMUvw=="],
 
     "debug": ["debug@4.4.3", "", { "dependencies": { "ms": "^2.1.3" }, "peerDependencies": { "supports-color": "*" }, "optionalPeers": ["supports-color"] }, "sha512-RGwwWnwQvkVfavKVt22FGLw+xYSdzARwm0ru6DhTVA3umU5hZc28V3kO4stgYryrTlLpuvgI9GiijltAjNbcqA=="],
 
