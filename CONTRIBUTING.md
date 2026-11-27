@@ -66,11 +66,12 @@ against its own checksums, and it wants network access and `tar`, once.
 [gitleaks](https://github.com/gitleaks/gitleaks) has to be on your `PATH`. It
 is a Go binary the hooks call directly, and nothing here installs it.
 
-`@washy-washy/core` is this package's one dependency, and until it has its own
-first npm release, `bun install` here resolves it against whatever range is
-currently pinned in `package.json` — which may be a placeholder. Point it at a
-local checkout with `bun link` while developing against unpublished core
-changes.
+`@washy-washy/core` is one of the three runtime dependencies, next to
+`@react-pdf/renderer` and `react`, and pinned like them. To develop against a
+local checkout of it, run `bun link` there, then `bun link @washy-washy/core`
+here. Build core first with `bun run build`, since its exports point at `dist/`.
+`package.json` stays as it is. To go back to the published version, remove the
+link and install again: `rm node_modules/@washy-washy/core && bun install`.
 
 `bunfig.toml` makes Bun skip any version published less than seven days ago,
 transitive ones included, so a compromised release has time to be caught.
