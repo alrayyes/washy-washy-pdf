@@ -20,7 +20,7 @@
   ],
   "scripts": {
     "build": "tsdown",
-    "check": "bun run lint && bun run lint:md && bun run lint:yaml && bun run lint:package-json && bun run lint:prose && bun run build && bun run typecheck && bun run lint:types-doc && bun test",
+    "check": "bun run lint && bun run lint:md && bun run lint:yaml && bun run lint:package-json && bun run lint:prose && bun run build && bun run test:dist && bun run typecheck && bun run lint:types-doc && bun test",
     "docs": "typedoc",
     "examples": "bun run scripts/examples.ts",
     "format": "prettier --write .",
@@ -38,6 +38,7 @@
     "prose:sync": "bun run scripts/install-vale.ts && .tools/vale sync",
     "screenshots": "bun run scripts/screenshots.ts",
     "test": "bun test",
+    "test:dist": "bun test ./test/dist.smoke.ts",
     "typecheck": "tsc --noEmit"
   },
   "overrides": {
