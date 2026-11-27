@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.6.5](https://github.com/alrayyes/washy-washy-pdf/compare/v2.6.4...v2.6.5) (2026-11-27)
+
+
+### Bug Fixes
+
+* **deps:** bump @washy-washy/core from 1.5.0 to 1.6.4 ([ea94dcf](https://github.com/alrayyes/washy-washy-pdf/commit/ea94dcfd9541ac21204277e79569ceb53e611468))
+* **deps:** bump react and @types/react ([b1dd37b](https://github.com/alrayyes/washy-washy-pdf/commit/b1dd37b4e934acb7016213957a28f20e391c46d2))
+
 ## [2.6.4](https://github.com/alrayyes/washy-washy-pdf/compare/v2.6.3...v2.6.4) (2026-10-16)
 
 ### Bug Fixes
