@@ -29,6 +29,8 @@ globs:
 ignores:
   - "**/node_modules/**"
   - "dist/**"
+  # TypeDoc's copies of linked files, stale as soon as the original changes.
+  - "docs-site/**"
   # Vendored by `vale sync`. Generated text belongs to nobody.
   - "styles/Google/**"
   - "styles/proselint/**"
