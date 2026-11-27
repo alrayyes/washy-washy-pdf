@@ -27,7 +27,8 @@ updates:
       # Held at what's pinned: a newer @react-pdf tree pulls raw pdfkit back
       # in and breaks washy-washy-cli's compiled binaries (#108). Every
       # update auto-merges and a fix: publishes, so no pull request may move
-      # these. Lift it by hand, with a binary build to prove it.
+      # these. Lift it by hand, with a binary build to prove it. This stops
+      # security update pull requests too; the advisory scan still reports them.
       - dependency-name: "@react-pdf/*"
       # Held below 7.x deliberately (#94 bumped it there and broke the docs
       # workflow for two weeks: typedoc@0.28.20's TS integration reads
