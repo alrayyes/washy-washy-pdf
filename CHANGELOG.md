@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.6.6](https://github.com/alrayyes/washy-washy-pdf/compare/v2.6.5...v2.6.6) (2026-11-27)
+
+
+### Bug Fixes
+
+* **deps:** bump @washy-washy/core from 1.6.4 to 2.0.1 ([#184](https://github.com/alrayyes/washy-washy-pdf/issues/184)) ([c0af050](https://github.com/alrayyes/washy-washy-pdf/commit/c0af0509fa1077353b53a0372230773955199492)), closes [#183](https://github.com/alrayyes/washy-washy-pdf/issues/183)
+
 ## [2.6.5](https://github.com/alrayyes/washy-washy-pdf/compare/v2.6.4...v2.6.5) (2026-11-27)
 
 
