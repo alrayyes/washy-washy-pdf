@@ -66,11 +66,23 @@ against its own checksums, and it wants network access and `tar`, once.
 [gitleaks](https://github.com/gitleaks/gitleaks) has to be on your `PATH`. It
 is a Go binary the hooks call directly, and nothing here installs it.
 
-`@washy-washy/core` is this package's one dependency, and until it has its own
-first npm release, `bun install` here resolves it against whatever range is
-currently pinned in `package.json` — which may be a placeholder. Point it at a
-local checkout with `bun link` while developing against unpublished core
-changes.
+`@washy-washy/core` is one of the three runtime dependencies, next to
+`@react-pdf/renderer` and `react`, and pinned like them. To develop against a
+local checkout of it, run `bun link` there, then `bun link @washy-washy/core`
+here. Build core first with `bun run build`, since its exports point at `dist/`.
+`package.json` stays as it is. To go back to the published version, remove the
+link and install again: `rm node_modules/@washy-washy/core && bun install`.
+
+`bunfig.toml` makes Bun skip any version published less than seven days ago,
+transitive ones included, so a compromised release has time to be caught.
+`bun install --frozen-lockfile` isn't affected. When you need a newer one, such
+as a fresh `@washy-washy/core`, name the version and say so for that one command:
+`bun add --exact --minimum-release-age=0 @washy-washy/core@<version>`. After editing
+`overrides`, run `bun install --minimum-release-age=0`. Either way young
+transitive versions get in too, so read the lockfile diff.
+
+Dependabot's updater runs Bun inside this repository, so expect a security fix
+younger than seven days to fail there until it ages. Add it by hand as above.
 
 ## The commands
 
@@ -248,12 +260,17 @@ file, or adds a deployment environment to the publishing job, npm rejects the
 upload until the trusted publisher matches. The runner's own npm (11.5.1 or
 newer) publishes, never a repository dependency.
 
+`release.yml` does that in two jobs. `pack` installs, builds and uploads the
+tarball, with no right to publish. `publish-npm` holds the OIDC token and only
+publishes that tarball, so a dependency's code never runs beside the token.
+`test/release-workflow.test.ts` holds it to that.
+
 The GitHub side needs one secret, `RELEASE_TOKEN`: a fine-grained personal
 access token scoped to this repository with **contents** and **pull requests**
 set to read and write. The default job token isn't enough, because a pull
 request it opens gets no checks and a merge it makes starts no workflow.
 
-If the npm job fails, use "Re-run failed jobs". If the workflow itself needed a
+If a publishing job fails, use "Re-run failed jobs". If the workflow itself needed a
 fix, run `release` by hand with the existing tag, such as `v2.6.5`.
 
 `CHANGELOG.md` keeps its `# Changelog` title, which release-please needs to put
