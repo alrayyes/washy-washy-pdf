@@ -166,7 +166,8 @@ takes every input as a function argument (`items`, `machine`, `variant`).
 Secrets and variables → Dependabot, because a Dependabot run can't read Actions
 secrets. Without it a Dependabot pull request still merges itself, but the merge
 starts no workflow on `main`, and a `fix:` bump waits for the next push to be
-released.
+released. Rotate both copies together: an expired one doesn't fall back, and the
+`auto-merge` job fails.
 
 ## Gotchas
 
