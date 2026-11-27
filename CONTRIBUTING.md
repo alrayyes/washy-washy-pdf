@@ -72,6 +72,17 @@ currently pinned in `package.json` — which may be a placeholder. Point it at a
 local checkout with `bun link` while developing against unpublished core
 changes.
 
+`bunfig.toml` makes Bun skip any version published less than seven days ago,
+transitive ones included, so a compromised release has time to be caught.
+`bun install --frozen-lockfile` isn't affected. When you need a newer one, such
+as a fresh `@washy-washy/core`, name the version and say so for that one command:
+`bun add --exact --minimum-release-age=0 @washy-washy/core@<version>`. After editing
+`overrides`, run `bun install --minimum-release-age=0`. Either way young
+transitive versions get in too, so read the lockfile diff.
+
+Dependabot's updater runs Bun inside this repository, so expect a security fix
+younger than seven days to fail there until it ages. Add it by hand as above.
+
 ## The commands
 
 ```sh
@@ -157,10 +168,11 @@ Two repository secrets, both under Settings → Secrets and variables →
 Actions — no application-level environment variables exist; this package
 takes every input as a function argument (`items`, `machine`, `variant`).
 
-- `CODECOV_TOKEN` — the `check` workflow uploads coverage with
-  `fail_ci_if_error: true`, so a pull request from a fork without this
-  secret (or a repo where it was never set) fails the `check` job on the
-  upload step rather than the tests themselves.
+- `CODECOV_TOKEN` — the `check` job uploads coverage and test results to
+  Codecov. Both uploads set `fail_ci_if_error: false`, so a failed one
+  doesn't fail `check`. Without the secret, as on a pull request from a fork
+  or from Dependabot, the upload is all you may lose: the tests still run and
+  still gate.
 - `RELEASE_TOKEN` — see [Releasing](#releasing) below for what it needs and
   why the default job token isn't enough.
 
