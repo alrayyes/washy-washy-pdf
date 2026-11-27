@@ -85,8 +85,8 @@ bun run docs               # TypeDoc, into docs-site/; delete it afterwards
 ```
 
 Two formatters, split by file type and never overlapping. Biome owns
-everything it supports; Markdown and YAML are what it does not format, so
-those go to Prettier and `.prettierignore` names the file types Prettier must
+everything it supports except Markdown, which `biome.json` excludes. That and
+YAML go to Prettier and `.prettierignore` names the file types Prettier must
 keep its hands off. Prettier runs before markdownlint, never after — Prettier
 decides the layout and markdownlint judges what came out, so the rules the two
 would argue over (list markers, list indentation, emphasis characters) are
@@ -163,6 +163,13 @@ takes every input as a function argument (`items`, `machine`, `variant`).
   upload step rather than the tests themselves.
 - `RELEASE_TOKEN` — see [Releasing](#releasing) below for what it needs and
   why the default job token isn't enough.
+
+`RELEASE_TOKEN` also has to exist as a Dependabot secret, under Settings →
+Secrets and variables → Dependabot, because a Dependabot run can't read Actions
+secrets. Without it a Dependabot pull request still merges itself, but the merge
+starts no workflow on `main`, and a `fix:` bump waits for the next push to be
+released. Rotate both copies together: an expired one doesn't fall back, and the
+`auto-merge` job fails.
 
 ## Gotchas
 

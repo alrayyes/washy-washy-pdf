@@ -10,7 +10,8 @@
       "!styles/Google",
       "!styles/proselint",
       "!reports",
-      "!.stryker-tmp"
+      "!.stryker-tmp",
+      "!**/*.md"
     ]
   },
   "formatter": {
