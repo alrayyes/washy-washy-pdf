@@ -2,3 +2,9 @@
 # TypeDoc copies the files the README links to into docs-site/, tests included,
 # and their relative imports no longer resolve there (#173).
 pathIgnorePatterns = ["docs-site/**"]
+
+[install]
+# Seven days, matching Dependabot's cooldown. The cooldown only picks which
+# direct version updates get proposed; this also covers whatever bun resolves
+# underneath them. A frozen install takes the lockfile as it is.
+minimumReleaseAge = 604800

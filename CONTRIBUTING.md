@@ -72,6 +72,12 @@ currently pinned in `package.json` — which may be a placeholder. Point it at a
 local checkout with `bun link` while developing against unpublished core
 changes.
 
+`bunfig.toml` makes Bun skip any version published less than seven days ago,
+transitive ones included, so a compromised release has time to be caught. A
+frozen install isn't affected. When you need a newer one, such as a fresh
+`@washy-washy/core`, say so for that one command with
+`bun add --minimum-release-age=0`.
+
 ## The commands
 
 ```sh
