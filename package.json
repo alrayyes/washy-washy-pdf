@@ -65,7 +65,7 @@
     "markdownlint-cli2": "0.23.2",
     "pdf-lib": "1.17.1",
     "prettier": "3.9.6",
-    "sort-package-json": "4.0.0",
+    "sort-package-json": "4.1.0",
     "tsd": "0.33.0",
     "tsdown": "0.23.0",
     "typedoc": "0.28.20",
