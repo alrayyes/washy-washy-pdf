@@ -260,12 +260,17 @@ file, or adds a deployment environment to the publishing job, npm rejects the
 upload until the trusted publisher matches. The runner's own npm (11.5.1 or
 newer) publishes, never a repository dependency.
 
+`release.yml` does that in two jobs. `pack` installs, builds and uploads the
+tarball, with no right to publish. `publish-npm` holds the OIDC token and only
+publishes that tarball, so a dependency's code never runs beside the token.
+`test/release-workflow.test.ts` holds it to that.
+
 The GitHub side needs one secret, `RELEASE_TOKEN`: a fine-grained personal
 access token scoped to this repository with **contents** and **pull requests**
 set to read and write. The default job token isn't enough, because a pull
 request it opens gets no checks and a merge it makes starts no workflow.
 
-If the npm job fails, use "Re-run failed jobs". If the workflow itself needed a
+If a publishing job fails, use "Re-run failed jobs". If the workflow itself needed a
 fix, run `release` by hand with the existing tag, such as `v2.6.5`.
 
 `CHANGELOG.md` keeps its `# Changelog` title, which release-please needs to put
