@@ -1,0 +1,46 @@
+# release-please has no built-in auto-merge, same gap as Dependabot, same
+# fix: gate on the label release-please itself applies, wait for the same
+# checks every other pull request waits for, then arm auto-merge the same
+# way a human would from the UI.
+#
+# `labeled` is in the trigger types because release-please adds its label
+# after opening the PR, so the `opened` payload never carries it.
+#
+# pull_request, not pull_request_target: release-please's pull request
+# comes from a branch on this repo, never a fork, so there's no untrusted
+# checkout to guard against.
+#
+# GH_TOKEN below has to be RELEASE_TOKEN, not GITHUB_TOKEN: a merge made with
+# GITHUB_TOKEN starts no workflow run, so release.yml would never see it and
+# the release would not be cut or published.
+name: release-auto-merge
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, labeled]
+
+# The merge goes through RELEASE_TOKEN, so GITHUB_TOKEN gets nothing.
+permissions: {}
+
+jobs:
+  auto-merge:
+    # release-please labels its own pull request "autorelease: pending"
+    # and re-labels it "autorelease: tagged" once merged -- checking the
+    # label rather than the actor, since the PR is opened by whichever
+    # identity runs googleapis/release-please-action, not a bot account. The
+    # repo and branch checks keep any other pull request carrying that label
+    # away from the step that holds RELEASE_TOKEN.
+    if: >-
+      contains(github.event.pull_request.labels.*.name, 'autorelease: pending') &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      startsWith(github.event.pull_request.head.ref, 'release-please--')
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      # check is the gate; this only arms the merge and lets GitHub wait
+      # for that gate itself, rather than polling it from inside the job.
+      - name: Enable auto-merge
+        run: gh pr merge --auto --squash "$PR_URL"
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GH_TOKEN: ${{ secrets.RELEASE_TOKEN }}

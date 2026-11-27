@@ -1,7 +1,7 @@
 # Merges here are squashes, so the pull request title becomes the subject of the
 # commit that lands on main and the branch commits become its body. The `commits`
 # job in check.yml lints the branch — which is exactly the half a squash throws
-# away. Nothing read the title, and semantic-release reads nothing else.
+# away. Nothing read the title, and release-please reads nothing else.
 name: pr-title
 
 on:
@@ -42,7 +42,7 @@ jobs:
           printf '%s\n' "$TITLE" | bunx --bun commitlint --verbose || {
             echo "::error::The pull request title is not a Conventional Commit."
             echo "::error::A squash merge makes it the subject on main, and"
-            echo "::error::semantic-release reads it to decide the next version."
+            echo "::error::release-please reads it to decide the next version."
             echo "::error::See the pull requests section of CONTRIBUTING.md."
             exit 1
           }

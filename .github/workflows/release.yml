@@ -1,16 +1,30 @@
 # Nobody picks a version by hand. The Conventional Commits that landed decide
-# it — feat: takes the minor, fix: the patch, a BREAKING CHANGE: footer the
-# major — and a merge of only docs: and chore: releases nothing at all.
+# it: feat: takes the minor, fix: the patch, a BREAKING CHANGE: footer the
+# major, and a merge of only docs: and chore: releases nothing at all.
 #
-# This is the one workflow that writes to main, and it writes nothing but the
-# version and the changelog — plus the npm publish itself.
+# release-please opens and updates a release pull request, and merging that
+# pull request makes it cut the tag and the GitHub release through the API.
+# release-auto-merge.yml merges it once green. Nothing here pushes to main.
+#
+# npm Trusted Publishing is bound to this repo and to this file's name,
+# release.yml, with no environment. Renaming the file or adding an
+# `environment:` to the publish job breaks publishing until the trusted
+# publisher on npmjs.com is changed to match.
 name: release
 
 on:
-  workflow_run:
-    workflows: [check]
-    types: [completed]
+  push:
     branches: [main]
+  # For publishing an already-cut release again, when the npm job failed and a
+  # re-run isn't enough because this file needed a fix. The input is an
+  # existing tag, e.g. "v2.6.5". Otherwise use "Re-run failed jobs": npm builds
+  # provenance from the ref the run started on, so a dispatch from main
+  # publishes the tag's contents with an attestation naming main's head.
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: The existing tag to publish to npm
+        required: true
 
 permissions:
   contents: read
@@ -20,107 +34,65 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  release:
-    # Only when the checks that ran on that commit actually passed. A
-    # workflow_run fires whatever the outcome, so without this a red main
-    # would still cut a release.
-    if: github.event.workflow_run.conclusion == 'success'
+  release-please:
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
-    timeout-minutes: 15
-    permissions:
-      # Tag, commit the changelog, and create the GitHub release.
-      contents: write
-      # Comment on the issues and pull requests a release closes.
-      issues: write
-      pull-requests: write
-      # npm Trusted Publishing (OIDC) — no NPM_TOKEN secret anywhere. Chosen
-      # over a static token: nothing to store, nothing to rotate, nothing to
-      # leak. Requires the trusted publisher linked on npmjs.com for this
-      # repo + this workflow filename (see washy-washy-pdf#2).
-      id-token: write
+    timeout-minutes: 5
+    # release-please works through RELEASE_TOKEN, so GITHUB_TOKEN gets nothing.
+    permissions: {}
+    outputs:
+      release_created: ${{ steps.release.outputs.release_created }}
+      tag_name: ${{ steps.release.outputs.tag_name }}
     steps:
-      # Without the token there is nothing to do, and nothing has gone wrong
-      # either — so this reports and stops rather than failing. A release badge
-      # stuck on red says the releases are broken, which would be a lie.
-      - name: Is the release token here?
-        id: token
-        run: |
-          if [ -n "$RELEASE_TOKEN" ]; then
-            echo "present=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "present=false" >> "$GITHUB_OUTPUT"
-            echo "::notice::RELEASE_TOKEN is not set, so nothing was released. See CONTRIBUTING.md#releasing."
-          fi
-        env:
-          RELEASE_TOKEN: ${{ secrets.RELEASE_TOKEN }}
-
-      # This workflow_run only fires for a check run whose head_branch is
-      # main (the `branches: [main]` filter above) — that's a push-triggered
-      # run of an already-merged commit, never a pull_request-triggered run
-      # from a fork (whose head_branch is the PR's own branch, not main).
-      # head_sha here is always a commit already on main, not untrusted PR
-      # code. Confirmed via a real local `semgrep scan --config p/default`
-      # run and triage on 2026-09-11 (washy-washy-pdf#88).
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1 nosemgrep: yaml.github-actions.security.workflow-run-target-code-checkout.workflow-run-target-code-checkout
-        if: steps.token.outputs.present == 'true'
+      # Not GITHUB_TOKEN: a pull request it opens gets no `check` run, so the
+      # release pull request could never go green.
+      - uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
+        id: release
         with:
           token: ${{ secrets.RELEASE_TOKEN }}
-          # semantic-release reads every commit since the last tag to decide
-          # what this one is, so a shallow clone would have it release the
-          # wrong thing or nothing at all.
-          fetch-depth: 0
-          ref: ${{ github.event.workflow_run.head_sha }}
+
+  # A job here, not an `on: release` workflow: Trusted Publishing names this
+  # file.
+  publish-npm:
+    needs: release-please
+    # always(): workflow_dispatch skips release-please, and a skipped `needs:`
+    # job would otherwise skip this one too.
+    if: |
+      always() &&
+      (
+        (github.event_name == 'push' && needs.release-please.outputs.release_created == 'true') ||
+        github.event_name == 'workflow_dispatch'
+      )
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      # The OIDC token for npm Trusted Publishing and provenance. No npm token.
+      id-token: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # refs/tags/ so a dispatch input like "main" can't publish a branch.
+          ref: refs/tags/${{ needs.release-please.outputs.tag_name || inputs.tag }}
 
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
-        if: steps.token.outputs.present == 'true'
         with:
           bun-version: 1.3.14
 
-      # bun installs it; Node runs it. semantic-release checks the runtime
-      # version at startup and refuses anything outside ^22.14 || >=24.10, and
-      # bun answers process.version with the Node it implements — so calling
-      # the binary directly lets its shebang pick Node up. Also what
-      # @semantic-release/npm needs for npm's OIDC Trusted Publishing.
+      # bun installs and builds; the npm bundled with this Node publishes.
+      # Trusted Publishing needs npm 11.5.1 or newer, and this one has 11.19.1.
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
-        if: steps.token.outputs.present == 'true'
         with:
-          node-version: 24.10.0
+          node-version: 24.22.3
+          registry-url: https://registry.npmjs.org
 
       - run: bun install --frozen-lockfile
-        if: steps.token.outputs.present == 'true'
-
-      # The exec plugin below re-shoots docs/*.png from the docs/*.pdf already
-      # on main — not the PDFs themselves. test/screenshots.test.ts already
-      # fails a pull request whose PDFs and PNGs have drifted, so the PDFs
-      # going into this job are already current; regenerating them here would
-      # only add churn, since @react-pdf/renderer stamps every render with a
-      # fresh CreationDate and /ID even when nothing about the drawing
-      # changed. Re-shooting needs pdftoppm — poppler — which ubuntu-latest
-      # doesn't carry.
-      # ubuntu-latest ships a Google Chrome apt source preinstalled that this
-      # step never uses — poppler-utils comes from the main Ubuntu archive —
-      # but `apt-get update` still fails the whole command whenever that
-      # source's mirror serves a stale/mismatched index, which it does often
-      # enough to be the actual cause the one time this failed live (run
-      # 34384092214: "Hash Sum mismatch" on dl.google.com, unrelated to
-      # anything this job fetches). Drop it before updating instead of
-      # updating against a source nothing here needs.
-      - run: |
-          sudo rm -f /etc/apt/sources.list.d/google-chrome.list
-          sudo apt-get update && sudo apt-get install -y poppler-utils
-        if: steps.token.outputs.present == 'true'
-
-      - run: ./node_modules/.bin/semantic-release
-        if: steps.token.outputs.present == 'true'
         env:
-          # The install above puts the git hooks in place, and this step pushes
-          # the changelog commit — so pre-push fires here and runs the whole
-          # check suite, including a Vale that only exists after `prose:sync`.
-          # Whatever this step would check already ran on this exact commit,
-          # and that green run is what started this job.
           LEFTHOOK: "0"
-          # Not the job token. main requires status checks, and a ruleset
-          # applies those to a direct push as well as to a pull request, so the
-          # changelog commit from github-actions[bot] is rejected. A token
-          # belonging to someone the ruleset lets bypass is what gets it in.
-          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+
+      - run: bun run build
+
+      # LEFTHOOK=0 again: npm publish runs the `prepare` script.
+      - run: npm publish --provenance --access public
+        env:
+          LEFTHOOK: "0"
