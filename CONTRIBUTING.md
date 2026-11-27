@@ -70,8 +70,8 @@ is a Go binary the hooks call directly, and nothing here installs it.
 `@react-pdf/renderer` and `react`, and pinned like them. To develop against a
 local checkout of it, run `bun link` there, then `bun link @washy-washy/core`
 here. Build core first with `bun run build`, since its exports point at `dist/`.
-`package.json` stays as it is, and a plain `bun install` brings back the
-published version.
+`package.json` stays as it is. To go back to the published version, remove the
+link and install again: `rm node_modules/@washy-washy/core && bun install`.
 
 `bunfig.toml` makes Bun skip any version published less than seven days ago,
 transitive ones included, so a compromised release has time to be caught.
