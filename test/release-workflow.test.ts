@@ -7,10 +7,15 @@ import { readFileSync } from "node:fs";
  * publishes that tarball.
  */
 type Step = { uses?: string; run?: string; with?: Record<string, string> };
-type Job = { needs?: string; permissions?: Record<string, string>; steps: Step[] };
-const { jobs } = Bun.YAML.parse(
+type Job = {
+  if?: string;
+  needs?: string;
+  permissions?: Record<string, string>;
+  steps: Step[];
+};
+const { jobs, permissions } = Bun.YAML.parse(
   readFileSync(new URL("../.github/workflows/release.yml", import.meta.url), "utf8"),
-) as { jobs: Record<string, Job> };
+) as { jobs: Record<string, Job>; permissions?: Record<string, string> };
 
 const publishing = Object.values(jobs).filter((j) => j.permissions?.["id-token"] === "write");
 
@@ -37,4 +42,13 @@ test("it publishes the tarball the job without the token packed", () => {
     s.uses?.startsWith("actions/download-artifact@"),
   );
   expect(download?.with?.name).toBe(upload?.with?.name as string);
+});
+
+test("no job inherits a permission it didn't ask for", () => {
+  expect(permissions).toEqual({ contents: "read" });
+  for (const [name, job] of Object.entries(jobs)) expect(job.permissions, name).toBeDefined();
+});
+
+test("a dispatch, which skips release-please, still reaches the publish", () => {
+  expect(jobs["publish-npm"]?.if).toContain("!cancelled() && needs.pack.result == 'success'");
 });
