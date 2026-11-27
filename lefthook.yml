@@ -87,6 +87,8 @@ pre-push:
         jobs:
           - name: build
             run: bun run build
+          - name: test-dist
+            run: bun run test:dist
           - name: typecheck
             run: bun run typecheck
           - name: types-doc
