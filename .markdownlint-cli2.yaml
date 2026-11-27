@@ -32,7 +32,7 @@ ignores:
   # Vendored by `vale sync`. Generated text belongs to nobody.
   - "styles/Google/**"
   - "styles/proselint/**"
-  # Written by semantic-release from the commit subjects, and committed by the
-  # release job without passing through any hook. Linting it means failing a
+  # Written by release-please from the commit subjects, in its release pull
+  # request, without passing through any hook. Linting it means failing a
   # run over prose no human chose and no human can fix in place.
   - "CHANGELOG.md"

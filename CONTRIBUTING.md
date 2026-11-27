@@ -191,15 +191,16 @@ Branch, commit under
 [Conventional Commits](https://www.conventionalcommits.org/), open a pull
 request. Run `bun run check` first.
 
-Those commit subjects are not decoration: semantic-release reads them when a
-pull request lands to decide the next version. `feat:` takes the minor,
+Those commit subjects are not decoration:
+[release-please](https://github.com/googleapis/release-please) reads them when
+a pull request lands to decide the next version. `feat:` takes the minor,
 `fix:` the patch, a `BREAKING CHANGE:` footer the major, and a branch of
 nothing but `docs:` and `chore:` releases nothing at all.
 
 **The pull request title matters as much as the commits.** Merges here are
 squashes, so the title is what lands on `main` and the branch commits become
 the body. Give it the same Conventional Commit subject you would give the
-commit, or semantic-release reads a subject with no type, finds nothing
+commit, or release-please reads a subject with no type, finds nothing
 releasable and skips the version without failing.
 
 The `pr-title` job holds you to it, running the same commitlint and the same
@@ -221,56 +222,34 @@ at a time is a filter nobody can use.
 
 ## Releasing
 
-Nobody picks a version. When a pull request lands on `main` and the checks
-pass, semantic-release reads the Conventional Commits that arrived with it,
-tags, writes `CHANGELOG.md`, publishes `@washy-washy/pdf` to npm with
-provenance, and writes the GitHub release.
+Nobody picks a version, and nobody edits the version or `CHANGELOG.md` by hand.
+release-please keeps a release pull request open with both. It merges itself
+once its checks are green, and `release.yml` then tags it, writes the GitHub
+release and publishes `@washy-washy/pdf` to npm with provenance. A commit that
+touches only `.github/`, `docs/`, `scripts/`, `styles/` or `test/` releases
+nothing, whatever its type. For single files such as `README.md`, the commit
+type is what stops a release.
 
 npm publishing uses [Trusted Publishing](https://docs.npmjs.com/trusted-publishers)
-(OIDC) rather than a stored token: the release job asks npm for a short-lived
-credential using its own GitHub Actions identity, which npm accepts because
-this repository and workflow file are linked as a trusted publisher on
-npmjs.com. Nothing to rotate, nothing to leak.
+(OIDC) rather than a stored token. npm accepts the job's own GitHub Actions
+identity because this repository and the file name `release.yml` are linked as a
+trusted publisher on npmjs.com, with no environment. If someone renames the
+file, or adds a deployment environment to the publishing job, npm rejects the
+upload until the trusted publisher matches. The runner's own npm (11.5.1 or
+newer) publishes, never a repository dependency.
 
-The GitHub side still needs one secret, `RELEASE_TOKEN`: a fine-grained
-personal access token scoped to this repository with **contents: read and
-write**, saved under Settings → Secrets and variables → Actions. The job
-token that Actions hands out by default is not enough — `main` requires
-status checks, a ruleset applies those to a direct push as well as to a pull
-request, and the changelog commit is a direct push from `github-actions[bot]`
-carrying no checks of its own, so it is rejected. A token belonging to
-someone the ruleset lets bypass is what gets it in.
+The GitHub side needs one secret, `RELEASE_TOKEN`: a fine-grained personal
+access token scoped to this repository with **contents** and **pull requests**
+set to read and write. The default job token isn't enough, because a pull
+request it opens gets no checks and a merge it makes starts no workflow.
 
-Until both of those exist the release job reports that it did nothing and
-stops. It does not fail: nothing is broken, there is just no token, and a
-release badge stuck on red would be saying otherwise.
+If the npm job fails, use "Re-run failed jobs". If the workflow itself needed a
+fix, run `release` by hand with the existing tag, such as `v2.6.5`.
 
-One wrinkle worth knowing if you touch that workflow. semantic-release checks
-the runtime version at startup and refuses anything outside
-`^22.14 || >=24.10`, and Bun answers `process.version` with the Node version
-it implements, so `bunx --bun semantic-release` dies on the version gate
-before doing anything at all. Bun installs it and Node runs it.
+`CHANGELOG.md` keeps its `# Changelog` title, which release-please needs to put
+each new entry in the right place. Prettier, markdownlint and Vale all leave the
+file alone.
 
-`CHANGELOG.md` is written by that job, and Prettier, markdownlint and Vale
-are all told to leave it alone. Its bullets are the generator's; reformatting
-them by hand only lasts until the next release.
-
-That job pushes with `LEFTHOOK=0`. The hooks install themselves on
-`bun install`, so they land there too, and its push would otherwise fire a
-`pre-push` that went looking for a Vale it had never downloaded — failing the
-release over the tooling rather than the prose. Whatever that hook would have
-checked already ran on that exact commit, and it is the green run that starts
-the release in the first place.
-
-Before any of that, the job also re-shoots `docs/*.png` from the `docs/*.pdf`
-already on `main` (`bun run screenshots`, via semantic-release's exec
-plugin) and lets `@semantic-release/git` commit whatever changed alongside
-the version bump. It doesn't regenerate the PDFs themselves —
-`test/screenshots.test.ts` already fails a pull request whose PDFs and PNGs
-have drifted, so the PDFs going into a release are already current, and
-re-rendering them here would add nothing but churn: `@react-pdf/renderer`
-stamps a fresh `CreationDate` and `/ID` into every render, so two runs over
-an unchanged chart never produce identical bytes. Re-shooting the PNGs is
-cheap and closes the one gap the pull-request check leaves — a screenshot
-committed by hand without the PDF it claims to be taken from having actually
-changed.
+A release doesn't re-shoot the screenshots. When the PDFs in `docs/` change, run
+`bun run screenshots` in the same pull request;
+`test/screenshots.test.ts` fails if you forget.

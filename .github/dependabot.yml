@@ -31,14 +31,6 @@ updates:
   #     prefix-development: chore
   #     include: scope
   #   ignore:
-  #     # Held at 9.x deliberately. 10.x exports the new-style preset config
-  #     # ({commits, parser, writer}) and @semantic-release/release-notes-generator
-  #     # 14 still reads writerOpts, so the notes come out as a version heading
-  #     # with nothing under it and no step fails. Dependabot bumps merge
-  #     # themselves here, so without this the fix would be undone by a bot.
-  #     # Lift it when the generator understands the new shape.
-  #     - dependency-name: conventional-changelog-conventionalcommits
-  #       update-types: ["version-update:semver-major"]
   #     # Held below 7.x deliberately (#94 bumped it there and broke the docs
   #     # workflow for two weeks: typedoc@0.28.20's TS integration reads
   #     # compiler-API internals TypeScript 7's rewrite doesn't ship, and

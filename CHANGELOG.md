@@ -1,3 +1,5 @@
+# Changelog
+
 ## [2.6.4](https://github.com/alrayyes/washy-washy-pdf/compare/v2.6.3...v2.6.4) (2026-10-16)
 
 ### Bug Fixes
