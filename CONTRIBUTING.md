@@ -162,6 +162,13 @@ takes every input as a function argument (`items`, `machine`, `variant`).
 - `RELEASE_TOKEN` — see [Releasing](#releasing) below for what it needs and
   why the default job token isn't enough.
 
+`RELEASE_TOKEN` also has to exist as a Dependabot secret, under Settings →
+Secrets and variables → Dependabot, because a Dependabot run can't read Actions
+secrets. Without it a Dependabot pull request still merges itself, but the merge
+starts no workflow on `main`, and a `fix:` bump waits for the next push to be
+released. Rotate both copies together: an expired one doesn't fall back, and the
+`auto-merge` job fails.
+
 ## Gotchas
 
 - Only Helvetica is embedded, so the PDFs can only render WinAnsi characters.
