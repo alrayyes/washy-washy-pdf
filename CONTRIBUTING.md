@@ -72,6 +72,17 @@ currently pinned in `package.json` — which may be a placeholder. Point it at a
 local checkout with `bun link` while developing against unpublished core
 changes.
 
+`bunfig.toml` makes Bun skip any version published less than seven days ago,
+transitive ones included, so a compromised release has time to be caught.
+`bun install --frozen-lockfile` isn't affected. When you need a newer one, such
+as a fresh `@washy-washy/core`, name the version and say so for that one command:
+`bun add --exact --minimum-release-age=0 @washy-washy/core@<version>`. After editing
+`overrides`, run `bun install --minimum-release-age=0`. Either way young
+transitive versions get in too, so read the lockfile diff.
+
+Dependabot's updater runs Bun inside this repository, so expect a security fix
+younger than seven days to fail there until it ages. Add it by hand as above.
+
 ## The commands
 
 ```sh
