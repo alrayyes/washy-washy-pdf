@@ -1,0 +1,4 @@
+[test]
+# TypeDoc copies the files the README links to into docs-site/, tests included,
+# and their relative imports no longer resolve there (#173).
+pathIgnorePatterns = ["docs-site/**"]

@@ -99,8 +99,7 @@ jobs:
           path: reports
           if-no-files-found: error
       # A bump that breaks the docs build must not merge (#159), and `check` is
-      # required where `pages` isn't. Last, because TypeDoc copies linked
-      # sources into docs-site/, which typecheck and bun test would pick up.
+      # required where `pages` isn't.
       - run: bun run docs
 
   # One Pages deployment per repo, and a second one replaces the first, so the

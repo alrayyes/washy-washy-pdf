@@ -81,7 +81,7 @@ bun run format             # let Prettier lay the Markdown and YAML out
 bun run lint:prose:advice  # Vale's style advice, warnings and all
 bun test                   # just the tests, against src/
 bun run test:dist          # render a PDF through the built dist/, after a build
-bun run docs               # TypeDoc, into docs-site/; delete it afterwards
+bun run docs               # TypeDoc, into docs-site/
 ```
 
 Two formatters, split by file type and never overlapping. Biome owns
