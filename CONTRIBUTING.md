@@ -157,10 +157,11 @@ Two repository secrets, both under Settings → Secrets and variables →
 Actions — no application-level environment variables exist; this package
 takes every input as a function argument (`items`, `machine`, `variant`).
 
-- `CODECOV_TOKEN` — the `check` workflow uploads coverage with
-  `fail_ci_if_error: true`, so a pull request from a fork without this
-  secret (or a repo where it was never set) fails the `check` job on the
-  upload step rather than the tests themselves.
+- `CODECOV_TOKEN` — the `check` job uploads coverage and test results to
+  Codecov. Both uploads set `fail_ci_if_error: false`, so a failed one
+  doesn't fail `check`. Without the secret, as on a pull request from a fork
+  or from Dependabot, the upload is all you may lose: the tests still run and
+  still gate.
 - `RELEASE_TOKEN` — see [Releasing](#releasing) below for what it needs and
   why the default job token isn't enough.
 
