@@ -39,6 +39,10 @@ jobs:
       # The build output itself: every other test imports src/, and a bumped
       # build tool merges unattended (#159).
       - run: bun run test:dist
+      # A bump that breaks the docs build must not merge (#159), and `check` is
+      # required where `pages` isn't. Before typecheck and bun test, so both
+      # prove they still ignore docs-site/ (#173).
+      - run: bun run docs
       - run: bun run typecheck
       - run: bun run lint:types-doc
       # A broken `files`/`exports` entry surfaces here rather than at
@@ -98,10 +102,6 @@ jobs:
           name: reports
           path: reports
           if-no-files-found: error
-      # A bump that breaks the docs build must not merge (#159), and `check` is
-      # required where `pages` isn't. Last, because TypeDoc copies linked
-      # sources into docs-site/, which typecheck and bun test would pick up.
-      - run: bun run docs
 
   # One Pages deployment per repo, and a second one replaces the first, so the
   # API reference and the reports are assembled into one site/ here and

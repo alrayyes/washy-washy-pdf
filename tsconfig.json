@@ -26,5 +26,8 @@
     "noUnusedLocals": false,
     "noUnusedParameters": false,
     "noPropertyAccessFromIndexSignature": false
-  }
+  },
+  // TypeDoc copies the files the README links to into docs-site/, where their
+  // relative imports no longer resolve (#173).
+  "exclude": ["node_modules", "docs-site"]
 }
